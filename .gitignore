@@ -1,0 +1,8 @@
+# build & deps
+out/
+cache/
+node_modules/
+lib/
+broadcast/
+.env
+*.log
