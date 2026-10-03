@@ -1,0 +1,14 @@
+{
+  "name": "acd-framework",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Agent Collective Decision Framework (ACDF) — design memo, reference contracts, schemas and vectors",
+  "license": "CC0-1.0",
+  "scripts": {
+    "vectors": "node tools/vectors.js",
+    "test": "forge test"
+  },
+  "devDependencies": {
+    "ethers": "6.17.0"
+  }
+}

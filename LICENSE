@@ -1,0 +1,7 @@
+CC0 1.0 Universal
+
+The Agent Collective Decision Framework specification text and the reference assets in this
+repository are dedicated to the public domain under the Creative Commons CC0 1.0 Universal
+Public Domain Dedication: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+
+Vendored third-party test fixtures under test/fixtures/ keep their original licenses (CC0-1.0).
