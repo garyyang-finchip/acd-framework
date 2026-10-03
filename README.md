@@ -1,8 +1,6 @@
 # Agent Collective Decision Framework (ACDF)
 
 > Qualified participants form collective decisions with defined effect, within explicit authorization, under verifiable and composable rules.
->
-> 让有资格的参与者，在明确的授权范围内，按照可验证、可组合的规则，形成具有明确效力的共同决定。
 
 **Status:** design memo v0.2 + reference implementation v0.2 (Solidity, Foundry), 117 passing tests, cross-language vectors. The English ERC text and the Sepolia run against the live ERC-8414 contract are the next round. Nothing here is deployed yet.
 
@@ -19,7 +17,7 @@ A minimal interoperable kernel for collective decisions among agents, plus norma
 ## Repository
 
 ```
-docs/design-memo-zh.md        design memo v0.2 (Chinese) — principles, object model, state machine, decisions log
+docs/design-memo.md           design memo v0.2 — principles, object model, state machine, decisions log
 docs/test-record.md           toolchain, sizes, full test list, stated limitations
 assets/erc-acdf/contracts/    ACDFTypes, ACDFPolicyRegistry, ACDFRegistry, interfaces/, libraries/, adapters/
 assets/erc-acdf/schemas/      policy-spec.schema.json, result-receipt.schema.json

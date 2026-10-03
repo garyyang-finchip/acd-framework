@@ -1,15 +1,15 @@
-# ACDF v0.2 — 测试记录 / Test record
+# ACDF v0.2 — Test record
 
-生成时间 / generated: 2026-10-03 23:11 UTC
+Generated: 2026-10-04 (UTC). Re-run with `forge test`; regenerate vectors with `node tools/vectors.js`.
 
-## 工具链 / Toolchain
+## Toolchain
 
 - Foundry forge 1.5.1-stable (commit b0a9dd9c), solc 0.8.24+commit.e11b9ed9, via-IR, optimizer runs = 1
-- forge-std v1.17.0 (`lib/forge-std`, install with `forge install foundry-rs/forge-std`)
+- forge-std v1.17.0 (`lib/forge-std`; install once with `forge install foundry-rs/forge-std`)
 - Node 22 + ethers 6.17.0 (`tools/vectors.js`, vector generation only)
-- ERC-8414 fixture: `test/fixtures/task-token/` vendored from github.com/garyyang-finchip/task-token-standard at commit `306a8f4046560ea181b1a967c18fb378e8871528` (TaskToken.sol, TaskVault.sol, interfaces/) — unmodified
+- ERC-8414 fixture: `test/fixtures/task-token/` vendored unmodified from github.com/garyyang-finchip/task-token-standard at commit `306a8f4046560ea181b1a967c18fb378e8871528` (TaskToken.sol, TaskVault.sol, interfaces/)
 
-## 运行时大小 / Runtime sizes (EIP-170 limit 24,576 B)
+## Runtime sizes (EIP-170 limit 24,576 B)
 
 | Contract | Runtime | Initcode |
 |---|---|---|
@@ -17,47 +17,42 @@
 | ACDFRegistry | 23,400 | 23,718 |
 | ACDFTaskTenderAdapter | 5,728 | 6,438 |
 
-## 命令 / Command
-
-```
-forge test            # all suites
-node tools/vectors.js # regenerate assets/erc-acdf/vectors/*.json
-```
-
-## 结果 / Result
+## Result
 
 ```
 Ran 16 tests for test/ACDFAdapter8414.t.sol:ACDFAdapter8414Test
-Suite result: ok. 16 passed; 0 failed; 0 skipped; finished in 14.87ms (8.47ms CPU time)
+Suite result: ok. 16 passed; 0 failed; 0 skipped
 Ran 21 tests for test/ACDFAdmission.t.sol:ACDFAdmissionTest
-Suite result: ok. 21 passed; 0 failed; 0 skipped; finished in 8.81ms (7.19ms CPU time)
+Suite result: ok. 21 passed; 0 failed; 0 skipped
 Ran 25 tests for test/ACDFMinimal.t.sol:ACDFMinimalTest
-Suite result: ok. 25 passed; 0 failed; 0 skipped; finished in 23.38ms (21.94ms CPU time)
+Suite result: ok. 25 passed; 0 failed; 0 skipped
 Ran 5 tests for test/ACDFCaseB.t.sol:ACDFCaseBTest
-Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 7.57ms (6.09ms CPU time)
+Suite result: ok. 5 passed; 0 failed; 0 skipped
 Ran 13 tests for test/ACDFRounds.t.sol:ACDFRoundsTest
-Suite result: ok. 13 passed; 0 failed; 0 skipped; finished in 8.39ms (6.48ms CPU time)
+Suite result: ok. 13 passed; 0 failed; 0 skipped
 Ran 10 tests for test/ACDFSigned.t.sol:ACDFSignedTest
-Suite result: ok. 10 passed; 0 failed; 0 skipped; finished in 11.00ms (9.52ms CPU time)
+Suite result: ok. 10 passed; 0 failed; 0 skipped
 Ran 23 tests for test/ACDFComposition.t.sol:ACDFCompositionTest
-Suite result: ok. 23 passed; 0 failed; 0 skipped; finished in 21.10ms (19.84ms CPU time)
+Suite result: ok. 23 passed; 0 failed; 0 skipped
 Ran 4 tests for test/ACDFVectors.t.sol:ACDFVectorsTest
-Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 423.44ms (538.23ms CPU time)
-Ran 8 test suites in 470.01ms (518.56ms CPU time): 117 tests passed, 0 failed, 0 skipped (117 total tests)
+Suite result: ok. 4 passed; 0 failed; 0 skipped
+Ran 8 test suites: 117 tests passed, 0 failed, 0 skipped (117 total tests)
 ```
 
-## 顾问六组最低集合 → 套件映射 / Advisor test groups → suites
+The same result was reproduced from a fresh clone of github.com/garyyang-finchip/acd-framework after `forge install foundry-rs/forge-std`.
 
-| 组 | 套件 |
+## Review test groups → suites
+
+| Group | Suites |
 |---|---|
-| 最小计票 | ACDFMinimal.t.sol, ACDFVectors.t.sol (kofn-tally, 83 rows) |
-| 接纳与冻结 | ACDFAdmission.t.sol |
-| 组合 | ACDFComposition.t.sol, ACDFVectors.t.sol (composition, 192 rows) |
-| 轮次与终局 | ACDFRounds.t.sol, ACDFCaseB.t.sol |
-| 规则与验证 | ACDFSigned.t.sol, ACDFVectors.t.sol (policy-id, ballot-digest) , ACDFMinimal.t.sol (policy id / family) |
-| 8414 执行 | ACDFAdapter8414.t.sol (real TaskToken fixture) |
+| Minimal tally | ACDFMinimal.t.sol; ACDFVectors.t.sol (kofn-tally, 83 rows) |
+| Acceptance and freezing | ACDFAdmission.t.sol |
+| Composition | ACDFComposition.t.sol; ACDFVectors.t.sol (composition, 192 rows) |
+| Rounds and finality | ACDFRounds.t.sol; ACDFCaseB.t.sol |
+| Rules and verification | ACDFSigned.t.sol; ACDFVectors.t.sol (policy-id, ballot-digest); ACDFMinimal.t.sol (policy id, family versioning) |
+| 8414 execution | ACDFAdapter8414.t.sol (real TaskToken fixture) |
 
-## 测试清单 / Test list
+## Test list
 
 ### ACDFAdapter8414.t.sol (16)
 
@@ -101,9 +96,6 @@ Ran 8 test suites in 470.01ms (518.56ms CPU time): 117 tests passed, 0 failed, 0
 - test_withdraw_only_while_filed_and_only_by_filer
 - test_no_unilateral_withdrawal_after_admission
 - test_evidence_events_until_final
-
-### ACDFBase.t.sol (0)
-
 
 ### ACDFCaseB.t.sol (5)
 
@@ -203,8 +195,8 @@ Ran 8 test suites in 470.01ms (518.56ms CPU time): 117 tests passed, 0 failed, 0
 - test_kofn_tally_vectors
 - test_composition_vectors
 
-## 局限 / Limitations stated
+## Limitations stated
 
 - Case B (`ACDFCaseB.t.sol`) uses a fixed roster snapshot and deterministic fixtures: it verifies composition, appeal and binding mechanics, not credit-qualified eligibility (ERC-8419 / ERC-8434), sybil resistance or random selection.
 - The ERC-8414 integration runs against the vendored kernel in a local EVM, not against the Sepolia instance. On-chain evidence (addresses, source version, runtime code, transactions, assertions) is the next round's deliverable.
-- `vm.getBlockTimestamp()` is used in tests instead of `block.timestamp` because via-IR may cache TIMESTAMP across `vm.warp`; contracts under test are unaffected (single-transaction semantics).
+- Tests read the clock through `vm.getBlockTimestamp()` instead of `block.timestamp` because via-IR may cache TIMESTAMP across `vm.warp`; the contracts under test are unaffected (single-transaction semantics).

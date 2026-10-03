@@ -288,7 +288,7 @@ contract ACDFAdmissionTest is ACDFBase {
         vote(id, 0, 0, true);
         vm.prank(consumer);
         vm.expectRevert("ACDF: not awaiting acknowledgment");
-        reg.acknowledge(id, keccak256("changed.yes"), E_NO, DISP, 0); // "受理后改参数" has no path
+        reg.acknowledge(id, keccak256("changed.yes"), E_NO, DISP, 0); // there is no path to change parameters after admission
     }
 
     function test_strict_post_ack_expires_instead_of_going_advisory() public {
