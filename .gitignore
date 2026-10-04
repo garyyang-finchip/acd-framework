@@ -6,3 +6,5 @@ lib/
 broadcast/
 .env
 *.log
+ercs-pr-package/
+__pycache__/
