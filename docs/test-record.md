@@ -203,5 +203,5 @@ The same result was reproduced from a fresh clone of github.com/garyyang-finchip
 ## Limitations stated
 
 - Case B (`ACDFCaseB.t.sol`) uses a fixed roster snapshot and deterministic fixtures: it verifies composition, appeal and binding mechanics, not credit-qualified eligibility (ERC-8419 / ERC-8434), sybil resistance or random selection.
-- The ERC-8414 integration runs against the vendored kernel in a local EVM, not against the Sepolia instance. On-chain evidence (addresses, source version, runtime code, transactions, assertions) is the next round's deliverable.
+- The Foundry suites run against the vendored kernel in a local EVM. The same accept path was then executed on Sepolia against the live ERC-8414 TaskToken (Case A, 2026-10-04): see `deployments/sepolia.json` and `deployments/sepolia-case-a.json` for addresses, transactions, events and assertions. The reject path, NoDecision path and appeals are covered by the local suites only.
 - Tests read the clock through `vm.getBlockTimestamp()` instead of `block.timestamp` because via-IR may cache TIMESTAMP across `vm.warp`; the contracts under test are unaffected (single-transaction semantics).

@@ -1,0 +1,184 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "title": "Case A: judged acceptance of a live ERC-8414 submission through ACDF",
+  "subject": {
+    "taskToken": "0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7",
+    "tokenId": 8,
+    "submissionId": 1,
+    "tdHash": "0x4f17a6a6e82f5996cf989222c53f616a94c8a699b51ee5f3356ba56f23964051",
+    "taskHash": "0x0ee14f85efe9968afcec429aa2fe2344f2000a2779ede696c2bdf14e87174dd7",
+    "resultHash": "0x647c88ef9001fbe3f71275e7f100e8701e7f61cb014ca6899ee59a14d0acff8a",
+    "taskVersion": 1,
+    "documents": "deployments/case-a/ (tdHash = keccak256(task-document.json), taskHash = keccak256(\"acdf.case-a.task.v1\" || tdHash), resultHash = keccak256(result.json))"
+  },
+  "issue": {
+    "issueId": "0xa5898a1ae508ea2fb1056dc3f7cbe3e63217b6d8bf4f12c13ed4c962780bc4df",
+    "policyId": "0x0f36cb699dafbdab0b08057665b6a716316e730409f5cbdfe53a5241f99ff279",
+    "mode": "CONSUMER_FILED",
+    "consumer": "0x76986Fd0Cc636Bf4C54A2F9145463F9893b9635F",
+    "effectClass": "Binding",
+    "admittedAt": 1791147756,
+    "hardDeadline": 1791158556,
+    "consumerDeadline": 1791318744,
+    "consumerDeadlineDerivation": "submittedAt 1791147744 + judgmentWindow 172800 - margin 1800"
+  },
+  "transactions": [
+    {
+      "hash": "0x8b9820f1fd072d224a1c74b353d3905566a7ac6670ac8fd2a36f6d8f9118fd71",
+      "block": 11844486,
+      "timestamp": 1791147240,
+      "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+      "to": "0x0218eeA626c95048416719460dC5Dd6D9eCc2906",
+      "call": "gas money to the worker (0.002 ETH)",
+      "gasUsed": 21000,
+      "observed": ""
+    },
+    {
+      "hash": "0xc7db9c2d4c85292bd06c4d6622782a59e921cbf67f8d1a708d99e5c0b13b46f6",
+      "block": 11844486,
+      "timestamp": 1791147240,
+      "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+      "to": null,
+      "call": "CREATE ACDFPolicyRegistry",
+      "gasUsed": 2137657,
+      "observed": "address 0x8b454635ad6CBd7649418df73776ED9FbD39f668"
+    },
+    {
+      "hash": "0x93df32c9900377377c14fea206143ad373d82eee038b5ed4cbc31358956c2546",
+      "block": 11844486,
+      "timestamp": 1791147240,
+      "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+      "to": null,
+      "call": "CREATE ACDFRegistry(policies)",
+      "gasUsed": 5137662,
+      "observed": "address 0x9ef9b6c68b2de3aCdaB42fbeca326816D1316a69"
+    },
+    {
+      "hash": "0x81b68a6612efec60e68b3efdd914fa6d769e902957ff64dc240dc8f1451c9571",
+      "block": 11844486,
+      "timestamp": 1791147240,
+      "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+      "to": "0x8b454635ad6CBd7649418df73776ED9FbD39f668",
+      "call": "registerPolicy(spec)",
+      "gasUsed": 513874,
+      "observed": "PolicyRegistered(policyId 0x0f36cb69..., family 0xf20031be..., authority deployer, version 1)"
+    },
+    {
+      "hash": "0x1764d3a89ef76e7ff25a366b5253504e976c96ce192b79f5acf7216da59df2ce",
+      "block": 11844486,
+      "timestamp": 1791147240,
+      "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+      "to": null,
+      "call": "CREATE ACDFTaskTenderAdapter(registry, task, policyId, 1800)",
+      "gasUsed": 1307744,
+      "observed": "address 0x76986Fd0Cc636Bf4C54A2F9145463F9893b9635F"
+    },
+    {
+      "hash": "0x7d819dd63e4790a9a547775c90afaa40d74e89547f66a342dd61441fb8ceefd4",
+      "block": 11844514,
+      "timestamp": 1791147624,
+      "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+      "to": "0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7",
+      "call": "mintTask(deployer, deployer, adapter, tdHash, taskHash, taskURI, terms)",
+      "gasUsed": 675070,
+      "observed": "Transfer(0 -> deployer, 8); TaskUpdated(8, tdHash, taskHash, v1); AcceptanceAuthorityChanged(8, 0 -> adapter); terms: native asset, 0.001 ETH per completion, 1 completion, judgmentWindow 172800, settleBy 0"
+    },
+    {
+      "hash": "0x3774f27cef839faf1011072b01854f32dc7f720e9c29b8896049d606022e9c61",
+      "block": 11844514,
+      "timestamp": 1791147624,
+      "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+      "to": "0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7",
+      "call": "fundTask(8, 0.001 ETH)",
+      "gasUsed": 114569,
+      "observed": "TenderFunded(8, deployer, 0.001 ETH, escrow 0.001 ETH)"
+    },
+    {
+      "hash": "0x4c45adae3d3bd841bf368a17072ebe54664db04b9595b3ba0ef91a3c051c171c",
+      "block": 11844523,
+      "timestamp": 1791147744,
+      "from": "0x0218eeA626c95048416719460dC5Dd6D9eCc2906",
+      "to": "0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7",
+      "call": "submitFulfillment(8, resultHash, resultURI)",
+      "gasUsed": 170526,
+      "observed": "FulfillmentSubmitted(8, 1, worker, resultHash, resultURI, v1)"
+    },
+    {
+      "hash": "0x62a11991382565080f913b774284ad62dc37558c97a51c0d35fdc6ed8e51cddc",
+      "block": 11844524,
+      "timestamp": 1791147756,
+      "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+      "to": "0x76986Fd0Cc636Bf4C54A2F9145463F9893b9635F",
+      "call": "open(8, 1)",
+      "gasUsed": 622513,
+      "observed": "IssueFiled(issueId, policyId, CONSUMER_FILED, filer = consumer = adapter); IssueAdmitted(Binding, admittedAt 1791147756, hardDeadline 1791158556); CaseOpened(issueId, 8, 1, resultHash, v1, consumerDeadline 1791318744)"
+    },
+    {
+      "hash": "0x41c971044a6ed669d4e08f44008050276b56f9baf0f6cb4d83e1d254a31f9833",
+      "block": 11844525,
+      "timestamp": 1791147768,
+      "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+      "to": "0x9ef9b6c68b2de3aCdaB42fbeca326816D1316a69",
+      "call": "submitSignedBallots(issueId, body 0, 4 voters, 4 EIP-712 signatures)",
+      "gasUsed": 239442,
+      "observed": "BallotCast x4 in order: 0xd24972e5... No; 0xED0A3cC8... Yes; 0x586F05f5... Yes; 0x4D0EA70a... Yes (3-of-5 reached on the third approval; decision instant 1791147768)"
+    },
+    {
+      "hash": "0xd269019c7d894cb4914b4105d4779ebf56b6071afea7d3b5b0e07f6b4347f997",
+      "block": 11844526,
+      "timestamp": 1791147780,
+      "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+      "to": "0x9ef9b6c68b2de3aCdaB42fbeca326816D1316a69",
+      "call": "settleRound(issueId)",
+      "gasUsed": 120118,
+      "observed": "RoundSettled(round 1, status Yes, reason NONE, at 1791147768, appealOpenUntil 1791148368); procedure state Provisional"
+    },
+    {
+      "hash": "0xf02c1b7f005865aedf122557ceefee7fa7bb58129b1d2aa8461af38f34fc6353",
+      "block": 11844663,
+      "timestamp": 1791149496,
+      "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+      "to": "0x9ef9b6c68b2de3aCdaB42fbeca326816D1316a69",
+      "call": "finalize(issueId)",
+      "gasUsed": 44851,
+      "observed": "Finalized(Decided, outcomeYes true, reason NONE, sourceRound 1); state Final; finalAt 1791149496"
+    },
+    {
+      "hash": "0xd4805130b53102ac43eb645bd861176183e8216465099b5b7b16cc6c9c95144c",
+      "block": 11844663,
+      "timestamp": 1791149496,
+      "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+      "to": "0x76986Fd0Cc636Bf4C54A2F9145463F9893b9635F",
+      "call": "execute(issueId)",
+      "gasUsed": 212140,
+      "observed": "TaskToken.FulfillmentAccepted(8, 1, worker, 0.001 ETH) - reward pushed to the worker; EnactmentRecorded(issueId, consumer adapter, effect erc8414.acceptFulfillment, Enacted); CaseEnacted(issueId, effect)"
+    }
+  ],
+  "finalState": {
+    "procedureState": "Final",
+    "outcomeType": "Decided",
+    "outcomeYes": true,
+    "reason": "NONE",
+    "decidedAt": 1791147768,
+    "finalAt": 1791149496,
+    "roundCount": 1,
+    "sourceRound": 1,
+    "enactment": "Enacted (erc8414.acceptFulfillment)",
+    "submissionStatus": "Accepted",
+    "escrowRemaining": "0",
+    "workerBalanceAfter": "0.002817064925636652 ETH (0.002 gas money - submission gas + 0.001 reward)"
+  },
+  "assertions": [
+    "the registry never moved assets: the reward left the task vault through TaskToken.acceptFulfillment called by the adapter (the consumer), not through the registry",
+    "the appeal window ran from the decision instant (third approval, 1791147768) to 1791148368, not from the settlement transaction (1791147780)",
+    "the dissenting ballot is on record and did not block: 1 No, 3 Yes under k = 3",
+    "the procedure's hard cap (admittedAt + 10800 = 1791158556) sits inside the consumer deadline (1791318744), as admission requires",
+    "Final is terminal: sourceRound = roundCount = 1, no appeal was filed"
+  ],
+  "totals": {
+    "transactions": 13,
+    "gasUsed": 11317166,
+    "deployerSpend": "about 0.0146 ETH including the 0.001 ETH reward escrow and 0.002 ETH worker gas money"
+  }
+}

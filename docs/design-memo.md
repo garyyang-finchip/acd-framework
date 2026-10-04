@@ -628,7 +628,7 @@ Later rounds: privacy profile details, deposit rules for Advisory issues, Execut
 ### 15.2 Next round
 
 - `ERCS/erc-acdf.md` is written (Abstract / Motivation / Specification / Rationale / Backwards Compatibility / Test Cases / Reference Implementation / Security Considerations) and passes eipw with the ethereum/ERCs lint configuration, markdownlint and codespell; `scripts/make-filing-package.py` generates and lints the submission package with the 9999 working placeholder. The Ethereum Magicians thread is topic 29850 and `discussions-to` points to it; the pull request is ethereum/ERCs #2046 (branch `add-erc-acdf`, byte-identical to the package); remaining: editor review and the number assignment (`--number <N>` re-generates the package).
-- Sepolia: deploy ACDFPolicyRegistry + ACDFRegistry + adapter, run Case A against the live ERC-8414 contract (TaskToken 0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7), and record contract addresses, source version, runtime code, transactions and assertions; only with that evidence do "design cases" become "tests passed".
+- Sepolia: done 2026-10-04. ACDFPolicyRegistry, ACDFRegistry and the adapter are deployed and Case A ran against the live ERC-8414 contract (TaskToken 0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7, task #8): Final x Decided(Yes), reward paid through acceptFulfillment. Evidence in `deployments/sepolia.json` and `deployments/sepolia-case-a.json`; procedure in `docs/sepolia-runbook.md`. Case B (composition, veto, appeal) remains a local test case.
 - Decide A'–G' of 14.2; among Planned profiles, the credit-qualified agent profile comes first (after the snapshot production method is fixed).
 - Ethereum Magicians thread posted (topic 29850); `docs/magicians-post.md` keeps the text.
 

@@ -20,7 +20,8 @@ local Anvil chain (chain id 31337) against the vendored kernel before this runbo
 
 ## Prerequisites
 
-- Foundry (forge 1.x). Clone the repository and run `forge install foundry-rs/forge-std` once.
+- Foundry (forge 1.x), or the `ghcr.io/foundry-rs/foundry` Docker image. Clone the repository and fetch
+  forge-std once: `git clone --depth 1 --branch v1.17.0 https://github.com/foundry-rs/forge-std lib/forge-std`.
 - A Sepolia RPC URL (`SEPOLIA_RPC_URL`).
 - A funded deployer key (`DEPLOYER_PK`). The whole sequence used about 11.3M gas in rehearsal
   (ACDFRegistry alone 5.14M); at 1-2 gwei that is 0.012-0.025 ETH, plus 0.001 ETH reward escrow
@@ -80,6 +81,13 @@ forge script script/SepoliaCaseA.s.sol:Finalize --rpc-url $SEPOLIA_RPC_URL --bro
 The script refuses to run while the window is open. It finalizes, executes through the adapter and
 checks on chain that the submission is Accepted, the enactment is Enacted and the worker received
 the reward.
+
+## Result of the run on 2026-10-04
+
+All four runs succeeded; the record is in `deployments/sepolia.json` and `deployments/sepolia-case-a.json`.
+One detail worth knowing: the `appealOpenUntil` printed by OpenCase comes from the simulation and can
+be a few blocks earlier than the on-chain value; Finalize checks the state-file value, and the
+registry itself rejects an early `finalize` during simulation, so simply wait a minute longer.
 
 ## What to send back for the evidence record
 
