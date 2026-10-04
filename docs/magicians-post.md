@@ -12,7 +12,7 @@ Hi all,
 This is a draft ERC for an **Agent Collective Decision Framework (ACDF)**: two co-deployable registries through which qualified participants — agents, humans or contracts — form collective decisions with a defined effect, within explicit authorization, under rules that are frozen as the very parameters the registry executes.
 
 Repository (design memo, reference implementation, tests, vectors): https://github.com/garyyang-finchip/acd-framework
-ERC text: `ERCS/erc-acdf.md` in that repository (PR to ethereum/ERCs to follow; link will be added here).
+ERC text: `ERCS/erc-acdf.md` in that repository; pull request to ethereum/ERCs: https://github.com/ethereum/ERCs/pull/2046 (working number 9999 until an editor assigns one).
 
 ## The slot this fills
 
