@@ -1,4 +1,6 @@
-# Ethereum Magicians post — draft
+# Ethereum Magicians post
+
+**Posted:** https://ethereum-magicians.org/t/draft-erc-agent-collective-decision-framework-acdf-authorized-composable-collective-decisions-with-procedural-finality/29850 (topic 29850, 2026-10-04)
 
 **Category:** ERCs
 **Suggested title:** [Draft ERC] Agent Collective Decision Framework (ACDF) — authorized, composable collective decisions with procedural finality

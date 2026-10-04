@@ -2,7 +2,7 @@
 
 > Qualified participants form collective decisions with defined effect, within explicit authorization, under verifiable and composable rules.
 
-**Status:** design memo v0.2, reference implementation v0.2 (Solidity, Foundry), 119 passing tests, cross-language vectors, and the draft ERC text (`ERCS/erc-acdf.md`) ready for submission to ethereum/ERCs. The Sepolia run against the live ERC-8414 contract is the next step. Nothing here is deployed yet.
+**Status:** design memo v0.2, reference implementation v0.2 (Solidity, Foundry), 119 passing tests, cross-language vectors, and the draft ERC text (`ERCS/erc-acdf.md`) under discussion on Ethereum Magicians (https://ethereum-magicians.org/t/draft-erc-agent-collective-decision-framework-acdf-authorized-composable-collective-decisions-with-procedural-finality/29850) and being submitted to ethereum/ERCs. The Sepolia run against the live ERC-8414 contract is the next step. Nothing here is deployed yet.
 
 ## What it is
 
