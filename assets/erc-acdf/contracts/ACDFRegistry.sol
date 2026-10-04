@@ -57,6 +57,10 @@ contract ACDFRegistry is IACDFRegistry {
         policies = policies_;
     }
 
+    function supportsInterface(bytes4 interfaceId) external pure returns (bool) {
+        return interfaceId == 0x01ffc9a7 || interfaceId == type(IACDFRegistry).interfaceId;
+    }
+
     // ================================================================== authorization
 
     function registerStandingAcceptance(T.StandingAcceptanceInput calldata input)

@@ -9,6 +9,9 @@ import {ACDFTypes as T} from "../ACDFTypes.sol";
 ///         update authority alone may publish the next version. Publishing a new version
 ///         never changes what an existing issue or standing acceptance is bound to.
 interface IACDFPolicyRegistry {
+    /// ERC-165: implementers MUST report `type(IACDFPolicyRegistry).interfaceId`.
+    function supportsInterface(bytes4 interfaceId) external view returns (bool);
+
     event PolicyRegistered(bytes32 indexed policyId, bytes32 indexed family, uint32 version, address indexed by);
 
     struct Timing {

@@ -1,6 +1,6 @@
 # ACDF v0.2 — Test record
 
-Generated: 2026-10-04 (UTC). Re-run with `forge test`; regenerate vectors with `node tools/vectors.js`.
+Generated: 2026-10-04 (UTC), reference implementation v0.2 with ERC-165 support. Re-run with `forge test`; regenerate vectors with `node tools/vectors.js`.
 
 ## Toolchain
 
@@ -13,8 +13,8 @@ Generated: 2026-10-04 (UTC). Re-run with `forge test`; regenerate vectors with `
 
 | Contract | Runtime | Initcode |
 |---|---|---|
-| ACDFPolicyRegistry | 9,545 | 9,572 |
-| ACDFRegistry | 23,400 | 23,718 |
+| ACDFPolicyRegistry | 9,642 | 9,669 |
+| ACDFRegistry | 23,514 | 23,832 |
 | ACDFTaskTenderAdapter | 5,728 | 6,438 |
 
 ## Result
@@ -22,21 +22,21 @@ Generated: 2026-10-04 (UTC). Re-run with `forge test`; regenerate vectors with `
 ```
 Ran 16 tests for test/ACDFAdapter8414.t.sol:ACDFAdapter8414Test
 Suite result: ok. 16 passed; 0 failed; 0 skipped
+Ran 26 tests for test/ACDFMinimal.t.sol:ACDFMinimalTest
+Suite result: ok. 26 passed; 0 failed; 0 skipped
 Ran 21 tests for test/ACDFAdmission.t.sol:ACDFAdmissionTest
 Suite result: ok. 21 passed; 0 failed; 0 skipped
-Ran 25 tests for test/ACDFMinimal.t.sol:ACDFMinimalTest
-Suite result: ok. 25 passed; 0 failed; 0 skipped
-Ran 5 tests for test/ACDFCaseB.t.sol:ACDFCaseBTest
-Suite result: ok. 5 passed; 0 failed; 0 skipped
 Ran 13 tests for test/ACDFRounds.t.sol:ACDFRoundsTest
 Suite result: ok. 13 passed; 0 failed; 0 skipped
+Ran 5 tests for test/ACDFCaseB.t.sol:ACDFCaseBTest
+Suite result: ok. 5 passed; 0 failed; 0 skipped
 Ran 10 tests for test/ACDFSigned.t.sol:ACDFSignedTest
 Suite result: ok. 10 passed; 0 failed; 0 skipped
 Ran 23 tests for test/ACDFComposition.t.sol:ACDFCompositionTest
 Suite result: ok. 23 passed; 0 failed; 0 skipped
-Ran 4 tests for test/ACDFVectors.t.sol:ACDFVectorsTest
-Suite result: ok. 4 passed; 0 failed; 0 skipped
-Ran 8 test suites: 117 tests passed, 0 failed, 0 skipped (117 total tests)
+Ran 5 tests for test/ACDFVectors.t.sol:ACDFVectorsTest
+Suite result: ok. 5 passed; 0 failed; 0 skipped
+Ran 8 test suites in 458.41ms (510.63ms CPU time): 119 tests passed, 0 failed, 0 skipped (119 total tests)
 ```
 
 The same result was reproduced from a fresh clone of github.com/garyyang-finchip/acd-framework after `forge install foundry-rs/forge-std`.
@@ -49,7 +49,7 @@ The same result was reproduced from a fresh clone of github.com/garyyang-finchip
 | Acceptance and freezing | ACDFAdmission.t.sol |
 | Composition | ACDFComposition.t.sol; ACDFVectors.t.sol (composition, 192 rows) |
 | Rounds and finality | ACDFRounds.t.sol; ACDFCaseB.t.sol |
-| Rules and verification | ACDFSigned.t.sol; ACDFVectors.t.sol (policy-id, ballot-digest); ACDFMinimal.t.sol (policy id, family versioning) |
+| Rules and verification | ACDFSigned.t.sol; ACDFVectors.t.sol (policy-id, ballot-digest, interface-ids); ACDFMinimal.t.sol (policy id, family versioning, ERC-165) |
 | 8414 execution | ACDFAdapter8414.t.sol (real TaskToken fixture) |
 
 ## Test list
@@ -97,6 +97,9 @@ The same result was reproduced from a fresh clone of github.com/garyyang-finchip
 - test_no_unilateral_withdrawal_after_admission
 - test_evidence_events_until_final
 
+### ACDFBase.t.sol (0)
+
+
 ### ACDFCaseB.t.sol (5)
 
 - test_caseB_main_path_veto_silent_both_chambers_adopt_appeal_then_final
@@ -131,7 +134,7 @@ The same result was reproduced from a fresh clone of github.com/garyyang-finchip
 - test_body_kind_acceptance_mismatch_rejected
 - test_max_total_duration_must_cover_rounds_and_appeals
 
-### ACDFMinimal.t.sol (25)
+### ACDFMinimal.t.sol (26)
 
 - test_1of1_approve_is_final_decided_yes
 - test_1of1_block_is_final_decided_no
@@ -157,6 +160,7 @@ The same result was reproduced from a fresh clone of github.com/garyyang-finchip
 - test_registered_policy_reads_back_the_executed_parameters
 - test_family_versioning
 - test_first_version_must_not_cite_previous
+- test_erc165_interface_ids
 - test_clock_mode
 
 ### ACDFRounds.t.sol (13)
@@ -188,9 +192,10 @@ The same result was reproduced from a fresh clone of github.com/garyyang-finchip
 - test_erc1271_contract_voter_is_accepted
 - test_ballot_digest_is_eip712_bound_to_chain_and_registry
 
-### ACDFVectors.t.sol (4)
+### ACDFVectors.t.sol (5)
 
 - test_policy_id_vectors_match_ethers_encoding
+- test_interface_id_vectors
 - test_ballot_digest_vectors_match_ethers_typed_data
 - test_kofn_tally_vectors
 - test_composition_vectors

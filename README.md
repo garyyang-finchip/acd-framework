@@ -2,7 +2,7 @@
 
 > Qualified participants form collective decisions with defined effect, within explicit authorization, under verifiable and composable rules.
 
-**Status:** design memo v0.2 + reference implementation v0.2 (Solidity, Foundry), 117 passing tests, cross-language vectors. The English ERC text and the Sepolia run against the live ERC-8414 contract are the next round. Nothing here is deployed yet.
+**Status:** design memo v0.2, reference implementation v0.2 (Solidity, Foundry), 119 passing tests, cross-language vectors, and the draft ERC text (`ERCS/erc-acdf.md`) ready for submission to ethereum/ERCs. The Sepolia run against the live ERC-8414 contract is the next step. Nothing here is deployed yet.
 
 ## What it is
 
@@ -17,14 +17,16 @@ A minimal interoperable kernel for collective decisions among agents, plus norma
 ## Repository
 
 ```
+ERCS/erc-acdf.md              draft ERC text (working placeholder number 9999; filed via scripts/make-filing-package.py)
 docs/design-memo.md           design memo v0.2 — principles, object model, state machine, decisions log
 docs/test-record.md           toolchain, sizes, full test list, stated limitations
+docs/magicians-post.md        draft of the Ethereum Magicians thread
 assets/erc-acdf/contracts/    ACDFTypes, ACDFPolicyRegistry, ACDFRegistry, interfaces/, libraries/, adapters/
 assets/erc-acdf/schemas/      policy-spec.schema.json, result-receipt.schema.json
-assets/erc-acdf/vectors/      policy-id, ballot-digest (ethers v6 ↔ solc), kofn-tally, composition truth tables
+assets/erc-acdf/vectors/      policy-id, ballot-digest (ethers v6 ↔ solc), kofn-tally, composition truth tables, interface-ids
 test/                         Foundry suites; test/fixtures/task-token/ = vendored real ERC-8414 kernel (commit 306a8f40)
 tools/vectors.js              regenerates the vectors
-ERCS/                         erc-acdf.md — next round
+scripts/make-filing-package.py  builds and lints the ethereum/ERCs submission package (ERCS/erc-N.md + assets/erc-N/)
 ```
 
 ## Build and test
@@ -36,7 +38,18 @@ forge test
 npm install && node tools/vectors.js # optional: regenerate vectors
 ```
 
-`foundry.toml` pins solc 0.8.24 with via-IR and optimizer runs = 1; the issue registry is 23,400 bytes of runtime code, under the EIP-170 limit.
+`foundry.toml` pins solc 0.8.24 with via-IR and optimizer runs = 1; the issue registry is 23,514 bytes of runtime code, under the EIP-170 limit. ERC-165 ids: `IACDFPolicyRegistry` `0x734a2e40`, `IACDFRegistry` `0x6cb878d2`.
+
+## Filing
+
+```bash
+python3 scripts/make-filing-package.py --discussions https://ethereum-magicians.org/t/<thread>/<id>
+# -> ercs-pr-package/ERCS/erc-9999.md and ercs-pr-package/assets/erc-9999/ ; the script lints the package
+# after an editor assigns a number:
+python3 scripts/make-filing-package.py --number <N> --discussions https://ethereum-magicians.org/t/<thread>/<id>
+```
+
+The ERC text refers to unmerged companion drafts descriptively and links only to merged proposals; the script rejects literal references to unmerged numbers, external URLs, Chinese characters, missing first-mention links and broken asset links.
 
 ## Profiles in v0.2
 

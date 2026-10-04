@@ -154,4 +154,25 @@ fs.writeFileSync(path.join(out, "composition.json"), JSON.stringify({
   vectors: comp,
 }, null, 2));
 
+// ---------------------------------------------------------------- ERC-165 interface ids
+// XOR of all function selectors of each interface (events excluded). Recomputed from the compiled
+// ABI when `out/` exists (forge build), otherwise the pinned values are written; test/ACDFVectors.t.sol
+// asserts them against type(I).interfaceId, so a stale pin fails the suite.
+function interfaceIdFromAbi(abi) {
+  const tuple = (i) => (i.type.startsWith("tuple") ? "(" + i.components.map(tuple).join(",") + ")" + (i.type.endsWith("[]") ? "[]" : "") : i.type);
+  let x = 0n;
+  for (const f of abi) if (f.type === "function") x ^= BigInt(ethers.id(`${f.name}(${f.inputs.map(tuple).join(",")})`).slice(0, 10));
+  return "0x" + x.toString(16).padStart(8, "0");
+}
+const pinned = { IACDFPolicyRegistry: "0x734a2e40", IACDFRegistry: "0x6cb878d2" };
+const ids = {};
+for (const name of Object.keys(pinned)) {
+  const abiPath = path.join(__dirname, "..", "out", `${name}.sol`, `${name}.json`);
+  ids[name] = fs.existsSync(abiPath) ? interfaceIdFromAbi(JSON.parse(fs.readFileSync(abiPath, "utf8")).abi) : pinned[name];
+}
+fs.writeFileSync(path.join(out, "interface-ids.json"), JSON.stringify({
+  description: "ERC-165 interface identifiers (XOR of function selectors). Verified against type(I).interfaceId in test/ACDFVectors.t.sol.",
+  ids,
+}, null, 2));
+
 console.log(`wrote ${policyVectors.length} policy-id, ${ballots.length} ballot-digest, ${tally.length} kofn-tally, ${comp.length} composition vectors to ${out}`);

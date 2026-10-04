@@ -3,6 +3,8 @@ pragma solidity ^0.8.24;
 
 import {ACDFBase} from "./ACDFBase.t.sol";
 import {ACDFTypes as T} from "../assets/erc-acdf/contracts/ACDFTypes.sol";
+import {IACDFPolicyRegistry} from "../assets/erc-acdf/contracts/interfaces/IACDFPolicyRegistry.sol";
+import {IACDFRegistry} from "../assets/erc-acdf/contracts/interfaces/IACDFRegistry.sol";
 
 /// Test group 1 — minimal tally (fixed roster, equal weight, K-of-N).
 contract ACDFMinimalTest is ACDFBase {
@@ -298,6 +300,15 @@ contract ACDFMinimalTest is ACDFBase {
         vm.prank(authority);
         vm.expectRevert("ACDF: first version has no previous");
         pol.registerPolicy(s);
+    }
+
+    function test_erc165_interface_ids() public view {
+        assertTrue(pol.supportsInterface(0x01ffc9a7));
+        assertTrue(pol.supportsInterface(type(IACDFPolicyRegistry).interfaceId));
+        assertFalse(pol.supportsInterface(0xffffffff));
+        assertTrue(reg.supportsInterface(0x01ffc9a7));
+        assertTrue(reg.supportsInterface(type(IACDFRegistry).interfaceId));
+        assertFalse(reg.supportsInterface(0xffffffff));
     }
 
     function test_clock_mode() public view {

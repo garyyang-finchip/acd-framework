@@ -29,6 +29,9 @@ interface IACDFRegistry {
     /// ERC-1497-style evidence pointer, attached to an issue.
     event Evidence(bytes32 indexed issueId, address indexed party, string evidenceURI);
 
+    /// ERC-165: implementers MUST report `type(IACDFRegistry).interfaceId`.
+    function supportsInterface(bytes4 interfaceId) external view returns (bool);
+
     function policies() external view returns (IACDFPolicyRegistry);
 
     // ------------------------------------------------------------------ authorization

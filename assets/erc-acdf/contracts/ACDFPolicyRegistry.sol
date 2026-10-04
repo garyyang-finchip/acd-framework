@@ -22,6 +22,10 @@ contract ACDFPolicyRegistry is IACDFPolicyRegistry {
     mapping(bytes32 => bytes32) private _familyLatestId;
     mapping(bytes32 => uint32) private _familyLatestVersion;
 
+    function supportsInterface(bytes4 interfaceId) external pure returns (bool) {
+        return interfaceId == 0x01ffc9a7 || interfaceId == type(IACDFPolicyRegistry).interfaceId;
+    }
+
     function policyIdOf(T.PolicySpec calldata spec) public pure returns (bytes32) {
         return keccak256(abi.encode(spec));
     }
