@@ -1,0 +1,8 @@
+{
+  "schema": "acdf.case-a.task-document.v1",
+  "title": "ACDF Case A: judged acceptance of a task-tender submission",
+  "task": "Deliver a one-page summary of the Agent Collective Decision Framework draft ERC (ethereum/ERCs pull request #2046) that states the three result dimensions (procedure state, outcome type, enactment status) and the minimal conformance profile.",
+  "acceptance": "A 3-of-5 roster of jurors votes under ACDF policy family acdf.sepolia.case-a, version 1. The adapter contract is the task's acceptance authority: a Final Yes calls acceptFulfillment, a Final No calls rejectFulfillment, a Final NoDecision triggers nothing (the tender's own judgment clock governs).",
+  "reward": "0.001 ETH per accepted completion, one completion",
+  "network": "sepolia"
+}

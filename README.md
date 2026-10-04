@@ -27,6 +27,9 @@ assets/erc-acdf/vectors/      policy-id, ballot-digest (ethers v6 ↔ solc), kof
 test/                         Foundry suites; test/fixtures/task-token/ = vendored real ERC-8414 kernel (commit 306a8f40)
 tools/vectors.js              regenerates the vectors
 scripts/make-filing-package.py  builds and lints the ethereum/ERCs submission package (ERCS/erc-N.md + assets/erc-N/)
+script/SepoliaCaseA.s.sol     Foundry scripts: Sepolia deployment and Case A against the live ERC-8414 TaskToken
+docs/sepolia-runbook.md       how to run them; what each run proves
+deployments/case-a/           documents whose hashes are bound on chain in Case A; deployments/sepolia.json once deployed
 ```
 
 ## Build and test
@@ -39,6 +42,10 @@ npm install && node tools/vectors.js # optional: regenerate vectors
 ```
 
 `foundry.toml` pins solc 0.8.24 with via-IR and optimizer runs = 1; the issue registry is 23,514 bytes of runtime code, under the EIP-170 limit. ERC-165 ids: `IACDFPolicyRegistry` `0x734a2e40`, `IACDFRegistry` `0x6cb878d2`.
+
+## Sepolia
+
+`docs/sepolia-runbook.md` describes the four `forge script` runs (`script/SepoliaCaseA.s.sol`) that deploy `ACDFPolicyRegistry`, `ACDFRegistry` and `ACDFTaskTenderAdapter` on Sepolia and take one real submission on the live ERC-8414 TaskToken (`0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7`) from filing through signed ballots, settlement, the appeal window, finality and execution. The sequence was rehearsed end to end on a local Anvil chain against the vendored kernel. Addresses and transactions are recorded in `deployments/` once the run is done.
 
 ## Filing
 

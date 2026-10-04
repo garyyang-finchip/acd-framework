@@ -1,0 +1,15 @@
+{
+  "schema": "acdf.policy-descriptor.v1",
+  "family": "acdf.sepolia.case-a",
+  "version": 1,
+  "purpose": "Judged acceptance of ERC-8414 task-tender submissions on Sepolia (ACDF reference deployment, Case A)",
+  "bodies": [
+    { "index": 0, "kind": "ROSTER_KOFN", "acceptance": "SIGNED_BALLOTS", "roster": "five juror accounts listed in the PolicySpec", "k": 3, "windowSeconds": 3600 }
+  ],
+  "composition": "single BODY node (body 0)",
+  "appeals": { "maxAppeals": 1, "appealWindowSeconds": 600, "appealable": "Decided results", "standing": "ANYONE" },
+  "maxTotalDurationSeconds": 10800,
+  "ackWindowSeconds": 0,
+  "allowAdvisory": false,
+  "note": "The hash of this file is the descriptorHash inside the PolicySpec. The file is informative; the PolicySpec is normative."
+}
