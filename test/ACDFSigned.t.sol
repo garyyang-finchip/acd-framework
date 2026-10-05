@@ -69,7 +69,7 @@ contract ACDFSignedTest is ACDFBase {
         assertEq(uint8(st), uint8(T.NodeStatus.Pending), "2 yes 1 no of 3-of-5 is pending");
         vm.prank(members[3]);
         vm.expectRevert("ACDF: body not on-chain tally");
-        reg.castBallot(id, 0, true);
+        reg.castBallot(id, 1, 0, true);
         (v, a, s) = batch(id, idx(3), yes(1));
         reg.submitSignedBallots(id, 0, v, a, s);
         reg.settleRound(id);

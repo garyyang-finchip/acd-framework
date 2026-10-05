@@ -152,8 +152,9 @@ abstract contract ACDFBase is Test {
     }
 
     function vote(bytes32 issueId, uint32 body, uint256 memberIdx, bool approve) internal {
+        uint32 round = reg.getResult(issueId).roundCount; // read before the prank so the prank reaches castBallot
         vm.prank(members[memberIdx]);
-        reg.castBallot(issueId, body, approve);
+        reg.castBallot(issueId, round, body, approve);
     }
 
     function result(bytes32 issueId) internal view returns (T.Result memory) { return reg.getResult(issueId); }

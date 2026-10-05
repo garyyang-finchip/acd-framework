@@ -1,6 +1,6 @@
 # ACDF v0.2 — Test record
 
-Generated: 2026-10-04 (UTC), reference implementation v0.2 with ERC-165 support. Re-run with `forge test`; regenerate vectors with `node tools/vectors.js`.
+Generated: 2026-10-05 (UTC), reference implementation v0.2.1 (round-bound on-chain ballots and submitter reports, ERC-165 support). Re-run with `forge test`; regenerate vectors with `node tools/vectors.js`.
 
 ## Toolchain
 
@@ -14,29 +14,29 @@ Generated: 2026-10-04 (UTC), reference implementation v0.2 with ERC-165 support.
 | Contract | Runtime | Initcode |
 |---|---|---|
 | ACDFPolicyRegistry | 9,642 | 9,669 |
-| ACDFRegistry | 23,514 | 23,832 |
+| ACDFRegistry | 23,626 | 23,944 |
 | ACDFTaskTenderAdapter | 5,728 | 6,438 |
 
 ## Result
 
 ```
 Ran 16 tests for test/ACDFAdapter8414.t.sol:ACDFAdapter8414Test
-Suite result: ok. 16 passed; 0 failed; 0 skipped
+Suite result: ok. 16 passed; 0 failed; 0 skipped; finished in 14.70ms (11.34ms CPU time)
 Ran 26 tests for test/ACDFMinimal.t.sol:ACDFMinimalTest
-Suite result: ok. 26 passed; 0 failed; 0 skipped
+Suite result: ok. 26 passed; 0 failed; 0 skipped; finished in 17.63ms (16.05ms CPU time)
 Ran 21 tests for test/ACDFAdmission.t.sol:ACDFAdmissionTest
-Suite result: ok. 21 passed; 0 failed; 0 skipped
-Ran 13 tests for test/ACDFRounds.t.sol:ACDFRoundsTest
-Suite result: ok. 13 passed; 0 failed; 0 skipped
+Suite result: ok. 21 passed; 0 failed; 0 skipped; finished in 8.57ms (6.11ms CPU time)
+Ran 15 tests for test/ACDFRounds.t.sol:ACDFRoundsTest
+Suite result: ok. 15 passed; 0 failed; 0 skipped; finished in 9.93ms (7.95ms CPU time)
 Ran 5 tests for test/ACDFCaseB.t.sol:ACDFCaseBTest
-Suite result: ok. 5 passed; 0 failed; 0 skipped
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 11.03ms (8.77ms CPU time)
 Ran 10 tests for test/ACDFSigned.t.sol:ACDFSignedTest
-Suite result: ok. 10 passed; 0 failed; 0 skipped
+Suite result: ok. 10 passed; 0 failed; 0 skipped; finished in 10.36ms (8.97ms CPU time)
 Ran 23 tests for test/ACDFComposition.t.sol:ACDFCompositionTest
-Suite result: ok. 23 passed; 0 failed; 0 skipped
+Suite result: ok. 23 passed; 0 failed; 0 skipped; finished in 24.66ms (22.77ms CPU time)
 Ran 5 tests for test/ACDFVectors.t.sol:ACDFVectorsTest
-Suite result: ok. 5 passed; 0 failed; 0 skipped
-Ran 8 test suites in 458.41ms (510.63ms CPU time): 119 tests passed, 0 failed, 0 skipped (119 total tests)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 448.94ms (564.01ms CPU time)
+Ran 8 test suites in 491.84ms (545.81ms CPU time): 121 tests passed, 0 failed, 0 skipped (121 total tests)
 ```
 
 The same result was reproduced from a fresh clone of github.com/garyyang-finchip/acd-framework after `forge install foundry-rs/forge-std`.
@@ -163,7 +163,7 @@ The same result was reproduced from a fresh clone of github.com/garyyang-finchip
 - test_erc165_interface_ids
 - test_clock_mode
 
-### ACDFRounds.t.sol (13)
+### ACDFRounds.t.sol (15)
 
 - test_decided_round_becomes_provisional_then_final_after_the_window
 - test_appeal_opens_round_two_whose_decision_supersedes_round_one
@@ -177,6 +177,8 @@ The same result was reproduced from a fresh clone of github.com/garyyang-finchip
 - test_round_deadline_and_hard_deadline_are_recorded_at_admission
 - test_hard_deadline_closes_an_issue_left_open_in_any_non_final_state
 - test_old_round_signed_ballot_cannot_be_replayed_in_a_new_round
+- test_on_chain_ballot_bound_to_a_settled_round_is_refused_in_the_next_round
+- test_submitter_report_bound_to_a_settled_round_is_refused_in_the_next_round
 - test_round_reads_are_bounds_checked
 
 ### ACDFSigned.t.sol (10)

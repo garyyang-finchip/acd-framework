@@ -231,7 +231,7 @@ contract ACDFCompositionTest is ACDFBase {
         vm.warp(vm.getBlockTimestamp() + 12 hours + 1);
         vm.prank(members[3]);
         vm.expectRevert("ACDF: body window closed");
-        reg.castBallot(id, 0, true);
+        reg.castBallot(id, 1, 0, true);
         reg.settleRound(id);
         assertFinalDecided(id, true);
     }
@@ -282,18 +282,18 @@ contract ACDFCompositionTest is ACDFBase {
         bytes32 id = fileAsConsumer(p, 1);
         vm.prank(rando);
         vm.expectRevert("ACDF: not the submitter");
-        reg.submitBodyResult(id, 1, T.NodeStatus.Yes);
+        reg.submitBodyResult(id, 1, 1, T.NodeStatus.Yes);
         vm.prank(submitter);
         vm.expectRevert("ACDF: status required");
-        reg.submitBodyResult(id, 1, T.NodeStatus.Pending);
+        reg.submitBodyResult(id, 1, 1, T.NodeStatus.Pending);
         vm.prank(submitter);
         vm.expectRevert("ACDF: body not on-chain tally");
-        reg.castBallot(id, 1, true);
+        reg.castBallot(id, 1, 1, true);
         vm.prank(submitter);
-        reg.submitBodyResult(id, 1, T.NodeStatus.Yes);
+        reg.submitBodyResult(id, 1, 1, T.NodeStatus.Yes);
         vm.prank(submitter);
         vm.expectRevert("ACDF: already submitted");
-        reg.submitBodyResult(id, 1, T.NodeStatus.No);
+        reg.submitBodyResult(id, 1, 1, T.NodeStatus.No);
         techYes(id);
         reg.settleRound(id);
         assertFinalDecided(id, true);
@@ -306,7 +306,7 @@ contract ACDFCompositionTest is ACDFBase {
         vm.warp(vm.getBlockTimestamp() + 1 days + 1);
         vm.prank(submitter);
         vm.expectRevert("ACDF: body window closed");
-        reg.submitBodyResult(id, 1, T.NodeStatus.Yes);
+        reg.submitBodyResult(id, 1, 1, T.NodeStatus.Yes);
         (T.NodeStatus st, T.Reason rs,) = reg.bodyStatus(id, 1, 1);
         assertEq(uint8(st), uint8(T.NodeStatus.NoDecision));
         assertEq(uint8(rs), uint8(T.Reason.SUBMITTER_SILENT));
@@ -319,7 +319,7 @@ contract ACDFCompositionTest is ACDFBase {
         bytes32 id = fileAsConsumer(p, 1);
         techYes(id);
         vm.prank(submitter);
-        reg.submitBodyResult(id, 1, T.NodeStatus.NoDecision);
+        reg.submitBodyResult(id, 1, 1, T.NodeStatus.NoDecision);
         reg.settleRound(id);
         assertFinalNoDecision(id, T.Reason.NOT_REACHED);
     }

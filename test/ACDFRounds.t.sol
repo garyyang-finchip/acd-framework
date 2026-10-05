@@ -98,7 +98,7 @@ contract ACDFRoundsTest is ACDFBase {
         reg.enforceHardDeadline(id);
         vm.prank(members[2]);
         vm.expectRevert("ACDF: not deciding");
-        reg.castBallot(id, 0, false);
+        reg.castBallot(id, 1, 0, false);
         // Final is terminal: the adopted result cannot change afterwards
         T.Result memory before = result(id);
         vm.warp(vm.getBlockTimestamp() + 30 days);
@@ -229,6 +229,48 @@ contract ACDFRoundsTest is ACDFBase {
         s[1] = sign(pk[1], reg.ballotDigest(id, 2, 0, members[1], false));
         a[0] = false; a[1] = false;
         reg.submitSignedBallots(id, 0, v, a, s);
+        reg.settleRound(id);
+        assertFinalDecided(id, false);
+        assertEq(result(id).sourceRound, 2);
+    }
+
+    /// The on-chain ballot names its round, exactly like the signed digest does: a transaction
+    /// meant for round 1 that lands after an appeal opened round 2 is refused, never re-counted.
+    function test_on_chain_ballot_bound_to_a_settled_round_is_refused_in_the_next_round() public {
+        bytes32 id = fileAsConsumer(pDecidedOnly, 1);
+        vote(id, 0, 0, true); vote(id, 0, 1, true); // 2-of-3 decides Yes in round 1
+        reg.settleRound(id);
+        reg.appeal(id);
+        assertEq(reg.getIssue(id).roundCount, 2);
+        // member 2's round-1 transaction arrives now
+        vm.prank(members[2]);
+        vm.expectRevert("ACDF: round mismatch");
+        reg.castBallot(id, 1, 0, false);
+        // a ballot that names round 2 is a fresh, intended vote
+        vm.prank(members[2]);
+        reg.castBallot(id, 2, 0, false);
+        assertTrue(reg.hasVoted(id, 2, 0, members[2]));
+        assertFalse(reg.hasVoted(id, 1, 0, members[2]));
+        // a future round cannot be voted into either
+        vm.prank(members[0]);
+        vm.expectRevert("ACDF: round mismatch");
+        reg.castBallot(id, 3, 0, false);
+    }
+
+    function test_submitter_report_bound_to_a_settled_round_is_refused_in_the_next_round() public {
+        T.PolicySpec memory s = appealSpec(3, keccak256("appeal.submitter"));
+        s.bodies[0] = submitterBody(members[0], 1 days);
+        bytes32 p = register(s);
+        bytes32 id = fileAsConsumer(p, 1);
+        vm.prank(members[0]);
+        reg.submitBodyResult(id, 1, 0, T.NodeStatus.Yes);
+        reg.settleRound(id);
+        reg.appeal(id);
+        vm.prank(members[0]);
+        vm.expectRevert("ACDF: round mismatch");
+        reg.submitBodyResult(id, 1, 0, T.NodeStatus.No); // stale round-1 report
+        vm.prank(members[0]);
+        reg.submitBodyResult(id, 2, 0, T.NodeStatus.No);
         reg.settleRound(id);
         assertFinalDecided(id, false);
         assertEq(result(id).sourceRound, 2);

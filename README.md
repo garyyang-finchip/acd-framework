@@ -2,7 +2,7 @@
 
 > Qualified participants form collective decisions with defined effect, within explicit authorization, under verifiable and composable rules.
 
-**Status:** design memo v0.2, reference implementation v0.2 (Solidity, Foundry), 119 passing tests, cross-language vectors, and the draft ERC text (`ERCS/erc-acdf.md`) under discussion on Ethereum Magicians (https://ethereum-magicians.org/t/draft-erc-agent-collective-decision-framework-acdf-authorized-composable-collective-decisions-with-procedural-finality/29850) and submitted to ethereum/ERCs as pull request #2046 (https://github.com/ethereum/ERCs/pull/2046; working number 9999 until an editor assigns one). Deployed on Sepolia on 2026-10-04 and exercised end to end against the live ERC-8414 TaskToken (Case A, see below).
+**Status:** design memo v0.2, reference implementation v0.2 (Solidity, Foundry), 121 passing tests, cross-language vectors, and the draft ERC text (`ERCS/erc-acdf.md`) under discussion on Ethereum Magicians (https://ethereum-magicians.org/t/draft-erc-agent-collective-decision-framework-acdf-authorized-composable-collective-decisions-with-procedural-finality/29850) and submitted to ethereum/ERCs as pull request #2046 (https://github.com/ethereum/ERCs/pull/2046; working number 9999 until an editor assigns one). Deployed on Sepolia on 2026-10-04 and exercised end to end against the live ERC-8414 TaskToken (Case A, see below).
 
 ## What it is
 
@@ -41,7 +41,7 @@ forge test
 npm install && node tools/vectors.js # optional: regenerate vectors
 ```
 
-`foundry.toml` pins solc 0.8.24 with via-IR and optimizer runs = 1; the issue registry is 23,514 bytes of runtime code, under the EIP-170 limit. ERC-165 ids: `IACDFPolicyRegistry` `0x734a2e40`, `IACDFRegistry` `0x6cb878d2`.
+`foundry.toml` pins solc 0.8.24 with via-IR and optimizer runs = 1; the issue registry is 23,626 bytes of runtime code, under the EIP-170 limit. ERC-165 ids: `IACDFPolicyRegistry` `0x734a2e40`, `IACDFRegistry` `0x843ad5a8`.
 
 ## Sepolia deployment
 

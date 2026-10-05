@@ -127,7 +127,7 @@ contract ACDFMinimalTest is ACDFBase {
         vote(id, 0, 0, true);
         vm.prank(members[0]);
         vm.expectRevert("ACDF: already voted");
-        reg.castBallot(id, 0, false); // changing one's mind is not allowed in the minimal profile
+        reg.castBallot(id, 1, 0, false); // changing one's mind is not allowed in the minimal profile
     }
 
     function test_non_member_cannot_vote() public {
@@ -135,10 +135,10 @@ contract ACDFMinimalTest is ACDFBase {
         bytes32 id = fileAsConsumer(p, 1);
         vm.prank(members[4]); // exists in the fixture, not in this roster of 3
         vm.expectRevert("ACDF: not a member");
-        reg.castBallot(id, 0, true);
+        reg.castBallot(id, 1, 0, true);
         vm.prank(rando);
         vm.expectRevert("ACDF: not a member");
-        reg.castBallot(id, 0, true);
+        reg.castBallot(id, 1, 0, true);
     }
 
     function test_late_vote_reverts() public {
@@ -147,7 +147,7 @@ contract ACDFMinimalTest is ACDFBase {
         vm.warp(vm.getBlockTimestamp() + 1 hours + 1);
         vm.prank(members[0]);
         vm.expectRevert("ACDF: body window closed");
-        reg.castBallot(id, 0, true);
+        reg.castBallot(id, 1, 0, true);
     }
 
     function test_vote_at_exact_window_close_is_accepted() public {
@@ -165,7 +165,7 @@ contract ACDFMinimalTest is ACDFBase {
         vote(id, 0, 0, true); vote(id, 0, 1, true);
         vm.prank(members[2]);
         vm.expectRevert("ACDF: body decided");
-        reg.castBallot(id, 0, false);
+        reg.castBallot(id, 1, 0, false);
     }
 
     function test_vote_before_admission_or_after_final_reverts() public {
@@ -175,7 +175,7 @@ contract ACDFMinimalTest is ACDFBase {
         reg.settleRound(id);
         vm.prank(members[0]);
         vm.expectRevert("ACDF: not deciding");
-        reg.castBallot(id, 0, true);
+        reg.castBallot(id, 1, 0, true);
     }
 
     function test_signed_submission_rejected_for_on_chain_body_and_vice_versa() public {
@@ -190,7 +190,7 @@ contract ACDFMinimalTest is ACDFBase {
         // and a roster body never accepts an authorized-submitter report
         vm.prank(members[0]);
         vm.expectRevert("ACDF: body not submitter");
-        reg.submitBodyResult(id, 0, T.NodeStatus.Yes);
+        reg.submitBodyResult(id, 1, 0, T.NodeStatus.Yes);
     }
 
     // ---------------------------------------------------------------- policy validation

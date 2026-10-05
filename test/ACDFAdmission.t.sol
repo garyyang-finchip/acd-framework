@@ -227,7 +227,7 @@ contract ACDFAdmissionTest is ACDFBase {
         assertEq(reg.getIssue(id).roundCount, 0);
         vm.prank(members[0]);
         vm.expectRevert("ACDF: not deciding");
-        reg.castBallot(id, 0, true);
+        reg.castBallot(id, 1, 0, true);
 
         // consumer acknowledges and commits the FINAL parameters; the filer's proposal is replaced
         vm.prank(consumer);
