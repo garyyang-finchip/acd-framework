@@ -1,9 +1,9 @@
 # Ethereum Magicians post
 
-**Posted:** https://ethereum-magicians.org/t/draft-erc-agent-collective-decision-framework-acdf-authorized-composable-collective-decisions-with-procedural-finality/29850 (topic 29850, 2026-10-04)
+**Posted:** https://ethereum-magicians.org/t/erc-8436-agent-collective-decision-framework/29850 (topic 29850, 2026-10-04; renamed by the editors to ERC-8436 on 2026-10-05)
 
 **Category:** ERCs
-**Suggested title:** [Draft ERC] Agent Collective Decision Framework (ACDF) — authorized, composable collective decisions with procedural finality
+**Title:** ERC-8436: Agent Collective Decision Framework (renamed by the editors from the original draft title)
 
 ---
 
@@ -12,7 +12,7 @@ Hi all,
 This is a draft ERC for an **Agent Collective Decision Framework (ACDF)**: two co-deployable registries through which qualified participants — agents, humans or contracts — form collective decisions with a defined effect, within explicit authorization, under rules that are frozen as the very parameters the registry executes.
 
 Repository (design memo, reference implementation, tests, vectors): https://github.com/garyyang-finchip/acd-framework
-ERC text: `ERCS/erc-acdf.md` in that repository; pull request to ethereum/ERCs: https://github.com/ethereum/ERCs/pull/2046 (working number 9999 until an editor assigns one).
+ERC text: `ERCS/erc-acdf.md` in that repository; pull request to ethereum/ERCs: https://github.com/ethereum/ERCs/pull/2046 (assigned number ERC-8436).
 
 ## The slot this fills
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build and lint the ethereum/ERCs submission package for the ACDF proposal.
 
-Source of truth: ERCS/erc-acdf.md (uses the working placeholder number 9999) and
+Source of truth: ERCS/erc-acdf.md (ERC-8436; the number was assigned on 2026-10-05) and
 assets/erc-acdf/{contracts,schemas,vectors}. The package mirrors the ERCs repository layout:
 
     <out>/ERCS/erc-<N>.md
@@ -10,8 +10,8 @@ assets/erc-acdf/{contracts,schemas,vectors}. The package mirrors the ERCs reposi
     <out>/assets/erc-<N>/vectors/...
 
 Usage:
-    python3 scripts/make-filing-package.py --discussions https://ethereum-magicians.org/t/...   # first filing (9999)
-    python3 scripts/make-filing-package.py --number 8XXX --discussions https://...            # after the editor assigns a number
+    python3 scripts/make-filing-package.py                       # ERC-8436 package from the source text
+    python3 scripts/make-filing-package.py --number 8436 --discussions https://ethereum-magicians.org/t/erc-8436-agent-collective-decision-framework/29850
 
 The script exits non-zero when any lint fails. Lints are a local approximation of the ERCs CI
 (eipw + HTMLProofer) and of the repository rule "no Chinese in any shipped file"; they are not a
@@ -22,7 +22,8 @@ import argparse, os, re, shutil, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC_MD = os.path.join(ROOT, "ERCS", "erc-acdf.md")
 SRC_ASSETS = os.path.join(ROOT, "assets", "erc-acdf")
-PLACEHOLDER = "9999"
+PLACEHOLDER = "9999"   # historical working number; links still written with it are rewritten
+NUMBER = "8436"        # assigned by the EIP editors on 2026-10-05
 
 # Drafts that have not been merged into ethereum/ERCs: a literal "ERC-N" mention would require a
 # link to a file that does not exist there (HTMLProofer 404) or be flagged by eipw's link-first rule.
@@ -114,7 +115,7 @@ def check_asset_links(body, number, pkg_root):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--number", default=PLACEHOLDER, help="ERC number to file under (default: 9999 working placeholder)")
+    ap.add_argument("--number", default=NUMBER, help="ERC number to file under (default: 8436)")
     ap.add_argument("--discussions", default=None, help="Ethereum Magicians thread URL for discussions-to")
     ap.add_argument("--out", default=os.path.join(ROOT, "ercs-pr-package"))
     ap.add_argument("--allow-tbd", action="store_true", help="allow a TBD discussions-to (dry run only)")
