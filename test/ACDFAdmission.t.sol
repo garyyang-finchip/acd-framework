@@ -87,6 +87,37 @@ contract ACDFAdmissionTest is ACDFBase {
         reg.file(i);
     }
 
+    function test_obligation_identity_is_separate_from_subject_identity() public {
+        // same subject (same evidence), two different consumer-committed obligations: both may run
+        T.IssueInput memory i = consumerInput(p, 1, 0);
+        i.obligationId = keccak256("duty.alpha");
+        vm.prank(consumer);
+        bytes32 a = reg.file(i);
+        i.obligationId = keccak256("duty.beta");
+        vm.prank(consumer);
+        bytes32 b = reg.file(i);
+        assertTrue(a != b);
+        assertEq(reg.getIssue(a).subject.dataHash, reg.getIssue(b).subject.dataHash, "subject frozen identically on both");
+        assertTrue(reg.getIssue(a).obligationKey != reg.getIssue(b).obligationKey);
+        // same obligation, different subject: the duty already has an unfinished Binding proceeding
+        T.IssueInput memory j = consumerInput(p, 2, 0);
+        j.obligationId = keccak256("duty.alpha");
+        vm.prank(consumer);
+        vm.expectRevert("ACDF: obligation active");
+        reg.file(j);
+        // the key is (consumer, obligationId, question)
+        assertEq(reg.getIssue(a).obligationKey, reg.obligationKeyOf(consumer, keccak256("duty.alpha"), Q));
+        assertEq(reg.getResult(a).obligationId, keccak256("duty.alpha"));
+    }
+
+    function test_binding_issue_requires_an_obligation() public {
+        T.IssueInput memory i = consumerInput(p, 1, 0);
+        i.obligationId = bytes32(0);
+        vm.prank(consumer);
+        vm.expectRevert("ACDF: obligation required");
+        reg.file(i);
+    }
+
     function test_same_obligation_may_be_refiled_once_the_previous_issue_is_terminal() public {
         bytes32 id1 = fileAsConsumer(p, 1);
         vm.warp(vm.getBlockTimestamp() + 1 days + 1);
@@ -201,7 +232,40 @@ contract ACDFAdmissionTest is ACDFBase {
         reg.file(standingInput(acc, p, 1));
     }
 
+    function test_standing_acceptance_fixed_obligation_scope_covers_every_issue_under_it() public {
+        address[] memory none = new address[](0);
+        T.StandingAcceptanceInput memory a;
+        a.policyId = p; a.effectYes = E_YES; a.effectNo = E_NO; a.disposition = DISP;
+        a.obligationId = keccak256("one.duty.for.all");
+        a.filers = none;
+        vm.prank(consumer);
+        bytes32 acc = reg.registerStandingAcceptance(a);
+        vm.prank(filer);
+        bytes32 id1 = reg.file(standingInput(acc, p, 1));
+        assertEq(reg.getIssue(id1).obligationId, keccak256("one.duty.for.all"), "scope committed by the consumer, not the filer");
+        // a different subject under the same acceptance is the same duty while id1 is unfinished
+        vm.prank(filer);
+        vm.expectRevert("ACDF: obligation active");
+        reg.file(standingInput(acc, p, 2));
+    }
+
+    function test_standing_acceptance_zero_obligation_keys_the_duty_on_the_exact_subject() public {
+        address[] memory none = new address[](0);
+        bytes32 acc = standing(none, p); // obligationId left at zero
+        vm.prank(filer);
+        bytes32 id1 = reg.file(standingInput(acc, p, 1));
+        assertEq(reg.getIssue(id1).obligationId, keccak256(abi.encode(reg.getIssue(id1).subject)), "derived from the frozen subject");
+        vm.prank(filer);
+        bytes32 id2 = reg.file(standingInput(acc, p, 2)); // another subject, another duty
+        assertTrue(id2 != id1);
+        vm.prank(filer);
+        vm.expectRevert("ACDF: obligation active");
+        reg.file(standingInput(acc, p, 1));
+    }
+
     // ---------------------------------------------------------------- POST_ACK
+
+    bytes32 constant OBL = keccak256("ack.obligation");
 
     function postAckInput(bytes32 policyId, uint256 id) internal view returns (T.IssueInput memory i) {
         i.policyId = policyId;
@@ -231,7 +295,7 @@ contract ACDFAdmissionTest is ACDFBase {
 
         // consumer acknowledges and commits the FINAL parameters; the filer's proposal is replaced
         vm.prank(consumer);
-        reg.acknowledge(id, keccak256("ack.yes"), keccak256("ack.no"), keccak256("ack.disposition"), 0);
+        reg.acknowledge(id, keccak256("ack.yes"), keccak256("ack.no"), keccak256("ack.disposition"), OBL, 0);
         T.Issue memory it = reg.getIssue(id);
         assertEq(uint8(it.state), uint8(T.ProcedureState.Deciding));
         assertEq(uint8(it.effectClass), uint8(T.EffectClass.Binding));
@@ -245,11 +309,11 @@ contract ACDFAdmissionTest is ACDFBase {
         bytes32 id = reg.file(postAckInput(pAck, 1));
         vm.prank(rando);
         vm.expectRevert("ACDF: not the named consumer");
-        reg.acknowledge(id, E_YES, E_NO, DISP, 0);
+        reg.acknowledge(id, E_YES, E_NO, DISP, OBL, 0);
         vm.warp(vm.getBlockTimestamp() + 1 hours + 1);
         vm.prank(consumer);
         vm.expectRevert("ACDF: ack window closed");
-        reg.acknowledge(id, E_YES, E_NO, DISP, 0);
+        reg.acknowledge(id, E_YES, E_NO, DISP, OBL, 0);
     }
 
     function test_advisory_admission_after_window_cannot_be_upgraded_to_binding_later() public {
@@ -271,7 +335,7 @@ contract ACDFAdmissionTest is ACDFBase {
         vote(id, 0, 0, true); vote(id, 0, 1, true);
         vm.prank(consumer);
         vm.expectRevert("ACDF: not awaiting acknowledgment");
-        reg.acknowledge(id, E_YES, E_NO, DISP, 0);
+        reg.acknowledge(id, E_YES, E_NO, DISP, OBL, 0);
         reg.settleRound(id);
         assertFinalDecided(id, true);
         // ...and an Advisory result can never be "enacted" through the registry log
@@ -284,11 +348,11 @@ contract ACDFAdmissionTest is ACDFBase {
         vm.prank(filer);
         bytes32 id = reg.file(postAckInput(pAck, 1));
         vm.prank(consumer);
-        reg.acknowledge(id, E_YES, E_NO, DISP, 0);
+        reg.acknowledge(id, E_YES, E_NO, DISP, OBL, 0);
         vote(id, 0, 0, true);
         vm.prank(consumer);
         vm.expectRevert("ACDF: not awaiting acknowledgment");
-        reg.acknowledge(id, keccak256("changed.yes"), E_NO, DISP, 0); // there is no path to change parameters after admission
+        reg.acknowledge(id, keccak256("changed.yes"), E_NO, DISP, OBL, 0); // there is no path to change parameters after admission
     }
 
     function test_strict_post_ack_expires_instead_of_going_advisory() public {
@@ -330,7 +394,7 @@ contract ACDFAdmissionTest is ACDFBase {
         // withdrawn issues cannot be acknowledged or admitted
         vm.prank(consumer);
         vm.expectRevert("ACDF: not awaiting acknowledgment");
-        reg.acknowledge(id, E_YES, E_NO, DISP, 0);
+        reg.acknowledge(id, E_YES, E_NO, DISP, OBL, 0);
     }
 
     function test_no_unilateral_withdrawal_after_admission() public {

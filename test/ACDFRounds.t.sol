@@ -276,6 +276,66 @@ contract ACDFRoundsTest is ACDFBase {
         assertEq(result(id).sourceRound, 2);
     }
 
+    // ---------------------------------------------------------------- appeal modes
+
+    function freshSpec(bytes32 family) internal view returns (T.PolicySpec memory s) {
+        s = appealSpec(3, family);
+        s.appealMode = T.AppealMode.REQUIRE_FRESH_DECISION;
+    }
+
+    function test_preserve_mode_marks_adoption_from_an_earlier_round() public {
+        bytes32 id = fileAsConsumer(pDecidedOnly, 1);
+        vote(id, 0, 0, true); vote(id, 0, 1, true);
+        reg.settleRound(id);
+        reg.appeal(id);
+        vm.warp(vm.getBlockTimestamp() + 1 days + 1); // appeal round: nobody votes
+        reg.settleRound(id);
+        T.Result memory r = result(id);
+        assertEq(uint8(r.outcomeType), uint8(T.OutcomeType.Decided));
+        assertTrue(r.outcomeYes);
+        assertEq(r.sourceRound, 1); assertEq(r.roundCount, 2);
+        assertTrue(r.adoptedFromEarlierRound, "finality by adoption, distinguishable by the consumer");
+    }
+
+    function test_fresh_mode_appeal_without_a_decision_ends_in_NoDecision() public {
+        bytes32 p = register(freshSpec(keccak256("appeal.fresh")));
+        bytes32 id = fileAsConsumer(p, 1);
+        vote(id, 0, 0, true); vote(id, 0, 1, true); // round 1 decides Yes
+        reg.settleRound(id);
+        reg.appeal(id);                              // opening the appeal vacates round 1
+        vm.warp(vm.getBlockTimestamp() + 1 days + 1);
+        reg.settleRound(id);
+        T.Result memory r = result(id);
+        assertEq(uint8(r.state), uint8(T.ProcedureState.Final));
+        assertEq(uint8(r.outcomeType), uint8(T.OutcomeType.NoDecision), "no fresh decision, so no decision at all");
+        assertEq(uint8(r.reason), uint8(T.Reason.QUORUM_NOT_MET));
+        assertEq(r.sourceRound, 2); assertEq(r.roundCount, 2);
+        assertFalse(r.adoptedFromEarlierRound);
+    }
+
+    function test_fresh_mode_appeal_that_decides_is_adopted_from_the_appeal_round() public {
+        bytes32 p = register(freshSpec(keccak256("appeal.fresh2")));
+        bytes32 id = fileAsConsumer(p, 1);
+        vote(id, 0, 0, true); vote(id, 0, 1, true);
+        reg.settleRound(id);
+        reg.appeal(id);
+        vote(id, 0, 0, false); vote(id, 0, 2, false); // the fresh decision is No
+        reg.settleRound(id);
+        assertFinalDecided(id, false);
+        T.Result memory r = result(id);
+        assertEq(r.sourceRound, 2); assertEq(r.roundCount, 2);
+        assertFalse(r.adoptedFromEarlierRound);
+    }
+
+    function test_appeal_mode_is_part_of_the_hashed_policy() public {
+        T.PolicySpec memory a = appealSpec(3, keccak256("appeal.mode.hash"));
+        T.PolicySpec memory b = appealSpec(3, keccak256("appeal.mode.hash"));
+        b.appealMode = T.AppealMode.REQUIRE_FRESH_DECISION;
+        assertTrue(pol.policyIdOf(a) != pol.policyIdOf(b));
+        bytes32 pb = register(b);
+        assertEq(uint8(pol.timingOf(pb).appealMode), uint8(T.AppealMode.REQUIRE_FRESH_DECISION));
+    }
+
     function test_round_reads_are_bounds_checked() public {
         bytes32 id = fileAsConsumer(pDecidedOnly, 1);
         vm.expectRevert("ACDF: round index");

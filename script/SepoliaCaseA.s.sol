@@ -109,6 +109,7 @@ abstract contract CaseABase is Script {
         s.appealWindow = APPEAL_WINDOW;
         s.appealable = 1; // Decided results appealable
         s.appealStanding = T.AppealStanding.ANYONE;
+        s.appealMode = T.AppealMode.PRESERVE_UNLESS_OVERTURNED;
         s.maxTotalDuration = MAX_TOTAL;
         s.ackWindow = 0;
         s.allowAdvisory = false;

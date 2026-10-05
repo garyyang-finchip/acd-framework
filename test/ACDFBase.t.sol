@@ -102,6 +102,7 @@ abstract contract ACDFBase is Test {
         s.appealWindow = 0;
         s.appealable = 0;
         s.appealStanding = T.AppealStanding.ANYONE;
+        s.appealMode = T.AppealMode.PRESERVE_UNLESS_OVERTURNED;
         s.maxTotalDuration = 30 days;
         s.ackWindow = 0;
         s.allowAdvisory = false;
@@ -143,7 +144,13 @@ abstract contract ACDFBase is Test {
         i.effectYes = E_YES;
         i.effectNo = E_NO;
         i.disposition = DISP;
+        i.obligationId = obligationOf(id);
         i.consumerDeadline = deadline;
+    }
+
+    /// Default obligation scope of the fixtures: one obligation per subject id.
+    function obligationOf(uint256 id) internal pure returns (bytes32) {
+        return keccak256(abi.encode("obligation", id));
     }
 
     function fileAsConsumer(bytes32 policyId, uint256 id) internal returns (bytes32 issueId) {

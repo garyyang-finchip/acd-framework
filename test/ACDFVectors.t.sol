@@ -35,6 +35,7 @@ contract ACDFVectorsTest is ACDFBase {
         s.bodies = bodies; s.nodes = nodes;
         s.maxAppeals = 0; s.appealWindow = 0; s.appealable = 0;
         s.appealStanding = T.AppealStanding.ANYONE;
+        s.appealMode = T.AppealMode.PRESERVE_UNLESS_OVERTURNED;
         s.maxTotalDuration = 30 days; s.ackWindow = 0; s.allowAdvisory = false;
         s.descriptorHash = keccak256("descriptor");
     }
@@ -69,6 +70,7 @@ contract ACDFVectorsTest is ACDFBase {
         n3[1] = combNode(T.Combinator.ALL, 0, u32(2, 3)); n3[2] = bodyNode(1); n3[3] = bodyNode(2);
         T.PolicySpec memory s3 = vectorSpec(b3, n3, "vector.veto");
         s3.maxAppeals = 1; s3.appealWindow = 2 days; s3.appealable = 3; s3.maxTotalDuration = 10 days;
+        s3.appealMode = T.AppealMode.REQUIRE_FRESH_DECISION;
         assertEq(pol.policyIdOf(s3), vm.parseJsonBytes32(json, ".vectors[2].policyId"), "veto-over-all-with-appeal");
     }
 

@@ -21,7 +21,7 @@ const POLICY_TUPLE =
   "tuple(bytes32 family,uint32 version,bytes32 previous,address updateAuthority," +
   "tuple(uint8 kind,uint8 acceptance,address[] members,uint32 k,uint64 window)[] bodies," +
   "tuple(uint8 op,uint32 body,uint32 k,uint32 target,uint32 vetoBody,uint8 silence,uint32[] children)[] nodes," +
-  "uint32 maxAppeals,uint64 appealWindow,uint8 appealable,uint8 appealStanding,uint64 maxTotalDuration," +
+  "uint32 maxAppeals,uint64 appealWindow,uint8 appealable,uint8 appealStanding,uint8 appealMode,uint64 maxTotalDuration," +
   "uint64 ackWindow,bool allowAdvisory,bytes32 descriptorHash)";
 
 const addr = (i) => ethers.getAddress("0x" + i.toString(16).padStart(40, "0"));
@@ -33,6 +33,7 @@ const Acceptance = { ON_CHAIN_TALLY: 0, SIGNED_BALLOTS: 1, AUTHORIZED_SUBMITTER:
 const Combinator = { BODY: 0, ALL: 1, ANY: 2, KOFM: 3, VETO: 4 };
 const VetoSilence = { PASS_THROUGH: 0, REQUIRE_CLEARANCE: 1 };
 const AppealStanding = { ANYONE: 0, CONSUMER_OR_FILER: 1 };
+const AppealMode = { PRESERVE_UNLESS_OVERTURNED: 0, REQUIRE_FRESH_DECISION: 1 };
 
 function base(family, bodies, nodes, extra = {}) {
   return {
@@ -42,6 +43,7 @@ function base(family, bodies, nodes, extra = {}) {
     updateAuthority: addr(0xA07),
     bodies, nodes,
     maxAppeals: 0, appealWindow: 0n, appealable: 0, appealStanding: AppealStanding.ANYONE,
+    appealMode: AppealMode.PRESERVE_UNLESS_OVERTURNED,
     maxTotalDuration: 30n * DAY, ackWindow: 0n, allowAdvisory: false,
     descriptorHash: ethers.id("descriptor"),
     ...extra,
@@ -61,7 +63,7 @@ const specs = {
   "veto-over-all-with-appeal": base("vector.veto",
     [roster([4, 5], 1, 12n * HOUR), roster([1, 2, 3], 2, 2n * DAY, Acceptance.SIGNED_BALLOTS), roster([3, 4, 5], 2, 3n * DAY)],
     [veto(1, 0, VetoSilence.PASS_THROUGH), comb(Combinator.ALL, 0, [2, 3]), bodyNode(1), bodyNode(2)],
-    { maxAppeals: 1, appealWindow: 2n * DAY, appealable: 3, maxTotalDuration: 10n * DAY }),
+    { maxAppeals: 1, appealWindow: 2n * DAY, appealable: 3, appealMode: AppealMode.REQUIRE_FRESH_DECISION, maxTotalDuration: 10n * DAY }),
 };
 
 const policyVectors = Object.entries(specs).map(([name, spec]) => {

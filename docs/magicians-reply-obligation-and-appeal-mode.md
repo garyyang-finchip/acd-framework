@@ -1,0 +1,21 @@
+# Magicians reply: obligation scope, appeal mode, finality basis
+
+Reply to chugarchugarr (#4) and predge-ai (#5) in topic 29850 (draft; post as one reply).
+
+---
+
+@chugarchugarr @predge-ai Thank you both — this answers the two questions I most wanted answered, and both changes are now in the reference repository and on PR #2046 (revision 2, together with the ERC-8436 renumbering).
+
+**1. Obligation identity is no longer the subject.** `IssueInput` carries a consumer-committed `obligationId`; exclusivity of unfinished Binding issues is keyed on `(consumer, obligationId, question)`, and the full `Subject` stays frozen on the issue as the evidence identity. Per acceptance mode: `CONSUMER_FILED` requires a non-zero `obligationId` from the consumer; a `STANDING_ACCEPTANCE` either fixes one scope for every issue under it or, with `obligationId = 0`, elects the exact subject as the scope (`keccak256(abi.encode(subject))`) — both committed by the consumer in advance, never chosen by the filer; `POST_ACK` takes the scope at acknowledgment, the filer's value being a proposal only. The ERC-8414 adapter scopes its obligation per submission, `keccak256(abi.encode(task, tokenId, submissionId))`, which is where the exact-submission binding that the subject already carries happens to coincide with the authority's duty — by the adapter's choice, as you put it, not by the kernel equating the two. Security Considerations now say what a bad scope costs: an identifier that varies with incidental data defeats the rule, one that is too coarse blocks independent proceedings.
+
+**2. Appeal mode is policy-explicit, with no kernel default.** `PolicySpec.appealMode ∈ {PRESERVE_UNLESS_OVERTURNED, REQUIRE_FRESH_DECISION}` is inside the hashed struct, so every participant sees it before the first ballot. Under PRESERVE the adoption rule is the previous one (the latest substantive decision survives a later round that ended without one). Under REQUIRE_FRESH opening an appeal vacates the earlier decision; only the last round's own `Yes`/`No` can be adopted, otherwise the issue ends in `NoDecision` and the consumer's committed disposition applies. @predge-ai, your point about preserve semantics pairing badly with hard caps went into Security Considerations almost verbatim: an appeal round that times out under PRESERVE confirms the challenged result by the clock, not by the appeal body, so such policies should size appeal windows and `maxTotalDuration` for the real difficulty of an appeal or choose REQUIRE_FRESH. Per-round timing (an appeal round longer than the first) is listed as a reserved extension rather than specified now; in this version every round uses the policy's body windows.
+
+**3. Finality by adoption is readable.** `Result.adoptedFromEarlierRound` is true exactly when `outcomeType == Decided` and `sourceRound < roundCount`, and the spec states that a consumer MAY commit to treat finality by adoption differently from finality by substantive decision. Under REQUIRE_FRESH the flag is always false.
+
+Dmitry's round binding (#2/#6) stays as shipped; your invariant — evidence may survive a transition, authority crosses it only when the committed procedure says so — is a good one-line summary of all three changes, and I have borrowed it for the Rationale.
+
+Consequences: `PolicySpec` gained a field, so every `policyId` changes and the policy-id vectors were regenerated; `IssueInput`, `StandingAcceptanceInput`, `acknowledge`, `obligationKeyOf` and `Result` changed, so the ERC-165 ids are now `IACDFPolicyRegistry 0xb362eb4e` and `IACDFRegistry 0xd31aae30`. Tests 121 → 129 (obligation separation, standing-acceptance scopes, both appeal modes, the adoption flag, mode inside the hash). `ACDFRegistry` is at 24,212 bytes of runtime, 364 under the EIP-170 limit — the next change that needs room will move revert strings to custom errors.
+
+Sepolia: the instance deployed on 2026-10-04 runs the v0.2 interfaces and stays as recorded; I will redeploy with the current code, this time also exercising an appeal path, and post the new addresses here.
+
+@chugarchugarr, with the three gaps closed, I read your last line as the kernel's authority semantics being complete for v1; if anything in the way the obligation scope is committed per mode looks off to you, that is the part I would most like checked.
