@@ -2,7 +2,7 @@
 
 > Qualified participants form collective decisions with defined effect, within explicit authorization, under verifiable and composable rules.
 
-**Status:** design memo v0.2, reference implementation v0.2 (Solidity, Foundry), 129 passing tests, cross-language vectors, and the draft ERC text (`ERCS/erc-acdf.md`), filed as **ERC-8436** (ethereum/ERCs pull request #2046, https://github.com/ethereum/ERCs/pull/2046; number assigned 2026-10-05) and under discussion on Ethereum Magicians (https://ethereum-magicians.org/t/erc-8436-agent-collective-decision-framework/29850). Deployed on Sepolia on 2026-10-04 and exercised end to end against the live ERC-8414 TaskToken (Case A, see below).
+**Status:** design memo v0.2, reference implementation v0.2 (Solidity, Foundry), 129 passing tests, cross-language vectors, and the draft ERC text (`ERCS/erc-acdf.md`), filed as **ERC-8436** (ethereum/ERCs pull request #2046, https://github.com/ethereum/ERCs/pull/2046; number assigned 2026-10-05) and under discussion on Ethereum Magicians (https://ethereum-magicians.org/t/erc-8436-agent-collective-decision-framework/29850). First deployed on Sepolia on 2026-10-04 (v0.2, archived record); the revision-2 redeployment with two live cases is the next step.
 
 ## What it is
 
@@ -29,7 +29,7 @@ tools/vectors.js              regenerates the vectors
 scripts/make-filing-package.py  builds and lints the ethereum/ERCs submission package (ERCS/erc-N.md + assets/erc-N/)
 script/SepoliaCaseA.s.sol     Foundry scripts: Sepolia deployment and Case A against the live ERC-8414 TaskToken
 docs/sepolia-runbook.md       how to run them; what each run proves
-deployments/                  sepolia.json (addresses, policy), sepolia-case-a.json (every transaction and event), case-a/ (hashed documents)
+deployments/                  case-a/, case-a2/ (hashed documents and policy descriptors); archive/ (v0.2 record); sepolia*.json once redeployed
 ```
 
 ## Build and test
@@ -43,18 +43,11 @@ npm install && node tools/vectors.js # optional: regenerate vectors
 
 `foundry.toml` pins solc 0.8.24 with via-IR and optimizer runs = 1; the issue registry is 24,212 bytes of runtime code, under the EIP-170 limit (364 bytes of headroom). ERC-165 ids: `IACDFPolicyRegistry` `0xb362eb4e`, `IACDFRegistry` `0xd31aae30`.
 
-## Sepolia deployment
+## Sepolia
 
-| Contract | Address |
-|---|---|
-| ACDFPolicyRegistry | `0x8b454635ad6CBd7649418df73776ED9FbD39f668` |
-| ACDFRegistry | `0x9ef9b6c68b2de3aCdaB42fbeca326816D1316a69` |
-| ACDFTaskTenderAdapter | `0x76986Fd0Cc636Bf4C54A2F9145463F9893b9635F` (acceptance authority for task #8 on the live ERC-8414 TaskToken `0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7`) |
-| Policy v1 | `0x0f36cb699dafbdab0b08057665b6a716316e730409f5cbdfe53a5241f99ff279` (family `keccak256("acdf.sepolia.case-a")`, 3-of-5 signed ballots, one appeal, 10-minute window) |
+**Revision 2 deployment: pending.** The scripts in `script/SepoliaCaseA.s.sol` (four runs, see `docs/sepolia-runbook.md`) deploy the current `ACDFPolicyRegistry`, `ACDFRegistry` and two `ACDFTaskTenderAdapter` instances and run two live cases against the ERC-8414 reference TaskToken (`0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7`): Case A (PRESERVE_UNLESS_OVERTURNED; one dissent, three approvals, appeal window passes, `acceptFulfillment` pays the worker) and Case A2 (REQUIRE_FRESH_DECISION; round 1 decides Yes, the decision is appealed, the appeal round ends without ballots, the issue ends in NoDecision and the adapter refuses to execute). The record will be written to `deployments/sepolia.json` and `deployments/sepolia-cases.json`.
 
-Case A ran on 2026-10-04 (blocks 11844486-11844663): the worker's submission #1 on task #8 was filed by the adapter as a Binding CONSUMER_FILED issue (`0xa5898a1a...bc4df`), four EIP-712 signed ballots (one No, three Yes) were relayed in one transaction, round 1 settled Yes at the instant of the third approval, the ten-minute appeal window passed, `finalize` recorded Final x Decided(Yes) with `sourceRound = roundCount = 1`, and `adapter.execute` paid the 0.001 ETH reward to the worker through the real `acceptFulfillment`. Every address, transaction, event and assertion is in `deployments/sepolia.json` and `deployments/sepolia-case-a.json`. The policy family's update authority is currently the deployer account. This instance runs the v0.2 interfaces (before round-bound ballots, consumer-committed obligations and policy-explicit appeal modes); a redeployment with the current code is planned and will be recorded alongside.
-
-`docs/sepolia-runbook.md` describes the four `forge script` runs (`script/SepoliaCaseA.s.sol`) that deploy `ACDFPolicyRegistry`, `ACDFRegistry` and `ACDFTaskTenderAdapter` on Sepolia and take one real submission on the live ERC-8414 TaskToken (`0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7`) from filing through signed ballots, settlement, the appeal window, finality and execution. The sequence was rehearsed on a local Anvil chain against the vendored kernel before the Sepolia run.
+**v0.2 deployment (2026-10-04), archived.** The first deployment and Case A under the v0.2 interfaces (before round-bound ballots, consumer-committed obligations and policy-explicit appeal modes) are recorded in `deployments/archive/2026-10-04-v0.2/`: `ACDFPolicyRegistry` `0x8b454635ad6CBd7649418df73776ED9FbD39f668`, `ACDFRegistry` `0x9ef9b6c68b2de3aCdaB42fbeca326816D1316a69`, `ACDFTaskTenderAdapter` `0x76986Fd0Cc636Bf4C54A2F9145463F9893b9635F`, task #8, issue `0xa5898a1a...bc4df`, Final x Decided(Yes), reward paid through the real `acceptFulfillment`. Those contracts stay on chain as they were.
 
 ## Filing
 

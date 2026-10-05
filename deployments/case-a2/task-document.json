@@ -1,0 +1,8 @@
+{
+  "schema": "acdf.case-a2.task-document.v1",
+  "title": "ACDF Case A2: judged acceptance with a de-novo appeal that reaches no fresh decision",
+  "task": "Deliver a short note stating, for the Agent Collective Decision Framework draft ERC (ERC-8436), what an appeal round that ends without a decision means under each appeal mode.",
+  "acceptance": "A 3-of-5 roster of jurors votes under ACDF policy family acdf.sepolia.case-a2, version 1, appeal mode REQUIRE_FRESH_DECISION. The adapter contract is the task's acceptance authority. In this case round 1 decides Yes, the decision is appealed, and the appeal round ends without a decision: the issue ends in NoDecision and the adapter executes nothing; the tender's own judgment clock governs.",
+  "reward": "0.001 ETH per accepted completion, one completion",
+  "network": "sepolia"
+}

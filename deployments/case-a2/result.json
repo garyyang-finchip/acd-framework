@@ -1,0 +1,4 @@
+{
+  "schema": "acdf.case-a2.result.v1",
+  "note": "Under PRESERVE_UNLESS_OVERTURNED an appeal round that ends in NoDecision leaves the decision under appeal standing; the result is Decided with sourceRound smaller than roundCount and adoptedFromEarlierRound true. Under REQUIRE_FRESH_DECISION opening the appeal vacates the earlier decision; only the appeal round's own Yes or No can be adopted, and if it reaches none the issue ends in NoDecision with the appeal round's reason, so the consumer's committed disposition applies. The mode is part of the hashed PolicySpec and has no kernel default."
+}
