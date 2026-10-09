@@ -8,3 +8,6 @@ broadcast/
 *.log
 ercs-pr-package/
 __pycache__/
+
+# local rehearsal state written by script/SepoliaCaseA.s.sol on Anvil (chain id != 11155111)
+deployments/local-*.json
