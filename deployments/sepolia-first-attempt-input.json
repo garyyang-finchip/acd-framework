@@ -1,0 +1,14 @@
+{
+  "note": "On-chain facts of the first revision-2 attempt (2026-10-06), read by CloseFirstAttempt on Sepolia; the main state file was overwritten by a failed rerun",
+  "taskToken": "0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7",
+  "registry": "0xbA03B451B421b5041d7bE7b5Fd7DbcF3B6Aa1354",
+  "adapterA": "0xEd117ceC7879409D3673a3Bd7deb6AD1A49B5216",
+  "adapterA2": "0xf4fa00187aA7A0c96186D2F428b68160a3523be7",
+  "worker": "0x0218eeA626c95048416719460dC5Dd6D9eCc2906",
+  "tokenA": 9,
+  "submissionA": 1,
+  "issueA": "0xf64cde86ba6c39584c077e0f1cf138c3e70b05a3d63b7e3bdfdf686b37ac1646",
+  "tokenA2": 10,
+  "submissionA2": 1,
+  "issueA2": "0xcdb8e61a18a0ae4334eb034a2d7fbf216845d6c2c1c65dfc5f63163e8dd5fdd0"
+}

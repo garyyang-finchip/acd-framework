@@ -357,23 +357,27 @@ contract Finalize is CaseBase {
 /// submission goes to the default as well. Results go to deployments/sepolia-first-attempt.json;
 /// the main state file keeps its keys for the rerun.
 contract CloseFirstAttempt is CaseBase {
+    /// On Sepolia the facts of the first attempt come from a committed input file (the main state
+    /// file was overwritten by a failed rerun); on a local rehearsal they come from the state file.
+    function src() internal view returns (string memory) {
+        return block.chainid == 11155111 ? "deployments/sepolia-first-attempt-input.json" : stateFile();
+    }
     function run() external {
         uint256 pk = deployerKey();
-        address task = stateAddress(".taskToken");
-        IACDFRegistry reg = IACDFRegistry(stateAddress(".registry"));
-        ACDFTaskTenderAdapter adapterA = ACDFTaskTenderAdapter(stateAddress(".adapterA"));
-        ACDFTaskTenderAdapter adapterA2 = ACDFTaskTenderAdapter(stateAddress(".adapterA2"));
-        bytes32 issueA = stateBytes32(".issueA");
-        bytes32 issueA2 = stateBytes32(".issueA2");
-        uint256 tokenA = stateUint(".tokenA"); uint256 subA = stateUint(".submissionA");
-        uint256 tokenA2 = stateUint(".tokenA2"); uint256 subA2 = stateUint(".submissionA2");
-        address worker = stateAddress(".worker");
+        string memory j0 = vm.readFile(src());
+        address task = vm.parseJsonAddress(j0, ".taskToken");
+        IACDFRegistry reg = IACDFRegistry(vm.parseJsonAddress(j0, ".registry"));
+        ACDFTaskTenderAdapter adapterA = ACDFTaskTenderAdapter(vm.parseJsonAddress(j0, ".adapterA"));
+        ACDFTaskTenderAdapter adapterA2 = ACDFTaskTenderAdapter(vm.parseJsonAddress(j0, ".adapterA2"));
+        bytes32 issueA = vm.parseJsonBytes32(j0, ".issueA");
+        bytes32 issueA2 = vm.parseJsonBytes32(j0, ".issueA2");
+        uint256 tokenA = vm.parseJsonUint(j0, ".tokenA"); uint256 subA = vm.parseJsonUint(j0, ".submissionA");
+        uint256 tokenA2 = vm.parseJsonUint(j0, ".tokenA2"); uint256 subA2 = vm.parseJsonUint(j0, ".submissionA2");
         ITaskTender t = ITaskTender(task);
         require(block.timestamp > t.submissionOf(tokenA, subA).submittedAt + JUDGMENT_WINDOW, "judgment window still open: use Finalize");
 
         // Idempotent: every step is skipped when the chain already shows its effect, so a run that
         // was cut short (for example by under-estimated gas) can simply be repeated.
-        uint256 before = worker.balance;
         vm.startBroadcast(pk);
         if (reg.getResult(issueA).state == T.ProcedureState.Provisional) reg.finalize(issueA); // the registry's decision is unaffected by the kernel's clock
         if (t.submissionOf(tokenA, subA).status == ITaskTender.SubmissionStatus.Pending
