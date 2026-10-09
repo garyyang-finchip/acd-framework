@@ -348,3 +348,84 @@ contract Finalize is CaseBase {
         logResult("Case A2", reg, issueA2);
     }
 }
+
+/// Closing run for a first attempt whose Finalize was not executed inside the kernel's judgment
+/// window. The registry still finalizes; whether the adapter's late execution lands is the kernel's
+/// decision: acceptFulfillment is bounded by settleBy only (none here), so a late accept still pays
+/// the worker through the real accept path, while a submission the adapter could not settle is
+/// paid by the kernel's own default (claimUnjudged). The appealed case settles as NoDecision and its
+/// submission goes to the default as well. Results go to deployments/sepolia-first-attempt.json;
+/// the main state file keeps its keys for the rerun.
+contract CloseFirstAttempt is CaseBase {
+    function run() external {
+        uint256 pk = deployerKey();
+        address task = stateAddress(".taskToken");
+        IACDFRegistry reg = IACDFRegistry(stateAddress(".registry"));
+        ACDFTaskTenderAdapter adapterA = ACDFTaskTenderAdapter(stateAddress(".adapterA"));
+        ACDFTaskTenderAdapter adapterA2 = ACDFTaskTenderAdapter(stateAddress(".adapterA2"));
+        bytes32 issueA = stateBytes32(".issueA");
+        bytes32 issueA2 = stateBytes32(".issueA2");
+        uint256 tokenA = stateUint(".tokenA"); uint256 subA = stateUint(".submissionA");
+        uint256 tokenA2 = stateUint(".tokenA2"); uint256 subA2 = stateUint(".submissionA2");
+        address worker = stateAddress(".worker");
+        ITaskTender t = ITaskTender(task);
+        require(block.timestamp > t.submissionOf(tokenA, subA).submittedAt + JUDGMENT_WINDOW, "judgment window still open: use Finalize");
+
+        uint256 before = worker.balance;
+        vm.startBroadcast(pk);
+        reg.finalize(issueA);          // the registry's decision is unaffected by the kernel's clock
+        adapterA.execute(issueA);      // late: lands iff the kernel still allows acceptFulfillment (settleBy = 0 -> yes)
+        reg.settleRound(issueA2);      // round 2 ended without ballots -> NoDecision -> Final (REQUIRE_FRESH_DECISION)
+        t.claimUnjudged(tokenA2, subA2); // no decision: the kernel's committed default pays the worker (permissionless)
+        vm.stopBroadcast();
+        bool aEnacted = t.submissionOf(tokenA, subA).status == ITaskTender.SubmissionStatus.Accepted;
+        if (!aEnacted) {
+            vm.startBroadcast(pk);
+            t.claimUnjudged(tokenA, subA); // the kernel refused the late accept: default pays instead
+            vm.stopBroadcast();
+        }
+
+        T.Result memory a = reg.getResult(issueA);
+        require(a.state == T.ProcedureState.Final && a.outcomeType == T.OutcomeType.Decided && a.outcomeYes, "A decided");
+        T.EnactmentStatus es = reg.getEnactment(issueA, address(adapterA), adapterA.EFFECT_ACCEPT()).status;
+        require(aEnacted ? es == T.EnactmentStatus.Enacted : es == T.EnactmentStatus.Failed, "A enactment record");
+        T.Result memory b = reg.getResult(issueA2);
+        require(b.state == T.ProcedureState.Final && b.outcomeType == T.OutcomeType.NoDecision && b.reason == T.Reason.QUORUM_NOT_MET, "A2 NoDecision");
+        require(reg.getRound(issueA2, 1).status == T.NodeStatus.Yes, "A2 round 1 Yes on record, vacated");
+        require(t.submissionOf(tokenA, subA).status == ITaskTender.SubmissionStatus.Accepted, "A settled");
+        require(t.submissionOf(tokenA2, subA2).status == ITaskTender.SubmissionStatus.Accepted, "A2 paid by default");
+        if (t.creditOf(tokenA, worker) + t.creditOf(tokenA2, worker) == 0) require(worker.balance == before + 2 * REWARD, "worker paid twice");
+        console2.log("A executed late through acceptFulfillment:", aEnacted);
+
+        string memory j = "first";
+        vm.serializeAddress(j, "adapterA", address(adapterA));
+        vm.serializeAddress(j, "adapterA2", address(adapterA2));
+        vm.serializeUint(j, "tokenA", tokenA); vm.serializeUint(j, "submissionA", subA); vm.serializeBytes32(j, "issueA", issueA);
+        vm.serializeUint(j, "tokenA2", tokenA2); vm.serializeUint(j, "submissionA2", subA2); vm.serializeBytes32(j, "issueA2", issueA2);
+        vm.serializeBool(j, "aExecutedThroughKernel", aEnacted);
+        string memory out = vm.serializeString(j, "note", "Finalize was not run inside the kernel judgment window; closed by CloseFirstAttempt");
+        vm.writeJson(out, block.chainid == 11155111 ? "deployments/sepolia-first-attempt.json" : "deployments/local-first-attempt.json");
+        logResult("Case A (first attempt, late)", reg, issueA);
+        logResult("Case A2 (first attempt)", reg, issueA2);
+    }
+}
+
+/// Redeploys the two adapters from the current assets (the registries and policies stay) and points
+/// the state file at them, so MintTasks / OpenCases / Finalize can run the cases again.
+contract RedeployAdapters is CaseBase {
+    function run() external {
+        uint256 pk = deployerKey();
+        IACDFRegistry reg = IACDFRegistry(stateAddress(".registry"));
+        address task = stateAddress(".taskToken");
+        bytes32 policyA = stateBytes32(".policyA");
+        bytes32 policyA2 = stateBytes32(".policyA2");
+        vm.startBroadcast(pk);
+        ACDFTaskTenderAdapter adapterA = new ACDFTaskTenderAdapter(reg, ITaskTenderKernel(task), policyA, MARGIN);
+        ACDFTaskTenderAdapter adapterA2 = new ACDFTaskTenderAdapter(reg, ITaskTenderKernel(task), policyA2, MARGIN);
+        vm.stopBroadcast();
+        vm.writeJson(vm.toString(address(adapterA)), stateFile(), ".adapterA");
+        vm.writeJson(vm.toString(address(adapterA2)), stateFile(), ".adapterA2");
+        console2.log("adapterA ", address(adapterA));
+        console2.log("adapterA2", address(adapterA2));
+    }
+}

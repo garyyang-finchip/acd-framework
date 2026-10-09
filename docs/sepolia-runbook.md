@@ -75,6 +75,25 @@ forge script script/SepoliaCaseA.s.sol:Finalize --rpc-url $SEPOLIA_RPC_URL --bro
 
 Three transactions: `finalize(A)`, `execute(A)`, `settleRound(A2)`. The script checks every assertion of the table above and refuses to run while a window is open.
 
+## If Finalize is missed: closing a first attempt and rerunning
+
+If run 4 was not executed before the kernel's judgment window closed (two days after the
+submissions), the registry side still finalizes, but the case record would no longer show the
+intended path. Two extra runs handle this:
+
+```bash
+forge script script/SepoliaCaseA.s.sol:CloseFirstAttempt --rpc-url $SEPOLIA_RPC_URL --broadcast -vv
+forge script script/SepoliaCaseA.s.sol:RedeployAdapters  --rpc-url $SEPOLIA_RPC_URL --broadcast -vv
+```
+
+`CloseFirstAttempt` finalizes Case A and executes it late (the kernel bounds `acceptFulfillment` by
+`settleBy` only, so with `settleBy = 0` the late accept still pays the worker; had it been refused,
+the enactment would be recorded as Failed and the kernel default `claimUnjudged` would pay instead),
+settles Case A2 as NoDecision and pays its submission through `claimUnjudged`. The record goes to
+`deployments/sepolia-first-attempt.json`. `RedeployAdapters` deploys the two adapters again from the
+current assets (registries and policies stay) and points the state file at them; then runs 2, 3 and
+4 are repeated for a clean record.
+
 ## What to send back for the evidence record
 
 - `deployments/sepolia.json`
