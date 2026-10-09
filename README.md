@@ -2,7 +2,7 @@
 
 > Qualified participants form collective decisions with defined effect, within explicit authorization, under verifiable and composable rules.
 
-**Status:** design memo v0.2, reference implementation v0.2 (Solidity, Foundry), 129 passing tests, cross-language vectors, and the draft ERC text (`ERCS/erc-acdf.md`), filed as **ERC-8436** (ethereum/ERCs pull request #2046, https://github.com/ethereum/ERCs/pull/2046; number assigned 2026-10-05) and under discussion on Ethereum Magicians (https://ethereum-magicians.org/t/erc-8436-agent-collective-decision-framework/29850). First deployed on Sepolia on 2026-10-04 (v0.2, archived record); the revision-2 redeployment with two live cases is the next step.
+**Status:** design memo v0.2, reference implementation v0.2 (Solidity, Foundry), 129 passing tests, cross-language vectors, and the draft ERC text (`ERCS/erc-acdf.md`), filed as **ERC-8436** (ethereum/ERCs pull request #2046, https://github.com/ethereum/ERCs/pull/2046; number assigned 2026-10-05) and under discussion on Ethereum Magicians (https://ethereum-magicians.org/t/erc-8436-agent-collective-decision-framework/29850). Deployed on Sepolia: revision 2 (the code in this repository) with two live cases completed on 2026-10-09 — Case A (Final x Decided(Yes), paid through the real `acceptFulfillment`) and Case A2 (appealed under REQUIRE_FRESH_DECISION, Final x NoDecision, execution refused) — recorded in `deployments/sepolia-cases.json`; the v0.2 deployment of 2026-10-04 is archived.
 
 ## What it is
 
@@ -11,7 +11,7 @@ A minimal interoperable kernel for collective decisions among agents, plus norma
 - A **Decision Policy** is an immutable, content-addressed template: `policyId = keccak256(abi.encode(PolicySpec))`. Every parameter that drives eligibility, thresholds, composition, timing and finality is inside the hashed object, so the registered rule and the executed rule are the same thing. Versions are linked through a policy family whose update authority alone may publish the next version; publishing never changes what existing issues are bound to.
 - An **Issue** binds a subject + question + policy version + at most one consumer, whose commitment also names the obligation scope within which only one Binding issue may be unfinished. Three acceptance modes: `CONSUMER_FILED` (the relying contract files), `STANDING_ACCEPTANCE` (the relying contract pre-declares what it accepts; listed filers file within it), `POST_ACK` (anyone files, the named consumer must acknowledge before admission; otherwise Advisory or closed). One live binding issue per obligation.
 - **Bodies** vote inside rounds. v0.2 ships two built-in kinds — fixed-roster K-of-N (on-chain ballots or EIP-712 signed ballots with ERC-1271 support) and authorized submitter — and composes them with `ALL / ANY / K-of-M / VETO` under four-valued semantics (Pending / Yes / No / NoDecision). A live veto window can never be extinguished by an early settlement.
-- **Results** keep three dimensions apart: procedure state (`Filed → Deciding → Provisional → Final`, plus `Withdrawn`), outcome type (`None / Decided / NoDecision`) and enactment status (per consumer and effect; authoritative at the consumer). Final is terminal. An appeal round that ends in NoDecision keeps the previous substantive decision (`sourceRound` ≠ `roundCount`).
+- **Results** keep three dimensions apart: procedure state (`Filed → Deciding → Provisional → Final`, plus `Withdrawn`), outcome type (`None / Decided / NoDecision`) and enactment status (per consumer and effect; authoritative at the consumer). Final is terminal. What an appeal round that ends in NoDecision does is fixed in the hashed policy: under `PRESERVE_UNLESS_OVERTURNED` the previous substantive decision stands (`adoptedFromEarlierRound = true`, `sourceRound` < `roundCount`); under `REQUIRE_FRESH_DECISION` the appeal vacates it and the issue ends in NoDecision.
 - The kernel never executes external effects. `ACDFTaskTenderAdapter` shows the pattern for ERC-8414: it is the task's acceptance authority, files issues bound to the exact submission and to both 8414 clocks (judgment window and `settleBy`), and executes Final decisions through the real `acceptFulfillment` / `rejectFulfillment`; a NoDecision triggers nothing — 8414's own `claimUnjudged` governs.
 
 ## Repository
@@ -29,7 +29,7 @@ tools/vectors.js              regenerates the vectors
 scripts/make-filing-package.py  builds and lints the ethereum/ERCs submission package (ERCS/erc-N.md + assets/erc-N/)
 script/SepoliaCaseA.s.sol     Foundry scripts: Sepolia deployment and Case A against the live ERC-8414 TaskToken
 docs/sepolia-runbook.md       how to run them; what each run proves
-deployments/                  case-a/, case-a2/ (hashed documents and policy descriptors); archive/ (v0.2 record); sepolia*.json once redeployed
+deployments/                  sepolia.json (script state), sepolia-cases.json (evidence record), sepolia-first-attempt*.json, case-a/, case-a2/ (hashed documents and policy descriptors), archive/ (v0.2 record)
 ```
 
 ## Build and test
@@ -45,7 +45,21 @@ npm install && node tools/vectors.js # optional: regenerate vectors
 
 ## Sepolia
 
-**Revision 2 deployment: pending.** The scripts in `script/SepoliaCaseA.s.sol` (four runs, see `docs/sepolia-runbook.md`) deploy the current `ACDFPolicyRegistry`, `ACDFRegistry` and two `ACDFTaskTenderAdapter` instances and run two live cases against the ERC-8414 reference TaskToken (`0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7`): Case A (PRESERVE_UNLESS_OVERTURNED; one dissent, three approvals, appeal window passes, `acceptFulfillment` pays the worker) and Case A2 (REQUIRE_FRESH_DECISION; round 1 decides Yes, the decision is appealed, the appeal round ends without ballots, the issue ends in NoDecision and the adapter refuses to execute). The record will be written to `deployments/sepolia.json` and `deployments/sepolia-cases.json`.
+**Revision 2 deployment (2026-10-05 / 2026-10-09).** The scripts in `script/SepoliaCaseA.s.sol` (see `docs/sepolia-runbook.md`) deployed the current contracts and ran two live cases against the ERC-8414 reference TaskToken (`0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7`):
+
+| Contract | Address | Runtime |
+|---|---|---|
+| `ACDFPolicyRegistry` | `0x7e870B29C903e71517676d52FCCD20Ef96477A73` | 9,765 B |
+| `ACDFRegistry` | `0xbA03B451B421b5041d7bE7b5Fd7DbcF3B6Aa1354` | 24,212 B |
+| `ACDFTaskTenderAdapter` (policy A, PRESERVE_UNLESS_OVERTURNED) | `0x09c3550cCAfc2E73B1f0edA3ECA2f5247bB24Da7` | 5,870 B |
+| `ACDFTaskTenderAdapter` (policy A2, REQUIRE_FRESH_DECISION) | `0x078271c288141660753b1BfB67A3cfc2F06c8AC2` | 5,870 B |
+
+All four match the bytecode built from `assets/erc-acdf/contracts` outside their immutable slots. Policy ids `0xb231869b...0401` (A) and `0x3e431bbb...d063` (A2), family authority = deployer.
+
+- **Case A** (task #13, issue `0xf2e88a4e...1dc8`): one dissent and three signed approvals, settle, appeal window passes, `finalize` -> Final x Decided(Yes), `adoptedFromEarlierRound = false`; `execute` -> `acceptFulfillment(13, 1)` pays the worker 0.001 ETH.
+- **Case A2** (task #14, issue `0x2ff1ec2f...4cdc`): three approvals, settle -> Provisional(Yes), `appeal` -> round 2, no ballots, round 2 settles NoDecision(QUORUM_NOT_MET) -> Final x NoDecision (`roundCount 2`, `sourceRound 2`); the round-1 Yes is vacated under REQUIRE_FRESH_DECISION, the adapter refuses `execute`, the submission stays Pending and the tender's own `claimUnjudged` governs.
+
+The full record — every transaction with block, timestamp and gas, the on-chain `getResult` values, the first attempt of 2026-10-05 (tasks #9/#10, closed late by `CloseFirstAttempt`: the kernel still accepted Case A because `acceptFulfillment` is bounded by `settleBy` only, and `claimUnjudged` paid Case A2), the superseded contracts and the Sepolia gas repricing — is `deployments/sepolia-cases.json`; `deployments/sepolia.json` is the script's state file.
 
 **v0.2 deployment (2026-10-04), archived.** The first deployment and Case A under the v0.2 interfaces (before round-bound ballots, consumer-committed obligations and policy-explicit appeal modes) are recorded in `deployments/archive/2026-10-04-v0.2/`: `ACDFPolicyRegistry` `0x8b454635ad6CBd7649418df73776ED9FbD39f668`, `ACDFRegistry` `0x9ef9b6c68b2de3aCdaB42fbeca326816D1316a69`, `ACDFTaskTenderAdapter` `0x76986Fd0Cc636Bf4C54A2F9145463F9893b9635F`, task #8, issue `0xa5898a1a...bc4df`, Final x Decided(Yes), reward paid through the real `acceptFulfillment`. Those contracts stay on chain as they were.
 

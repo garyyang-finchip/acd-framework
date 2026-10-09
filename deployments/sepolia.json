@@ -1,92 +1,37 @@
 {
-  "network": "sepolia",
+  "adapterA": "0x09c3550cCAfc2E73B1f0edA3ECA2f5247bB24Da7",
+  "adapterA2": "0x078271c288141660753b1BfB67A3cfc2F06c8AC2",
+  "authority": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
   "chainId": 11155111,
-  "deployedAt": "2026-10-04T21:34:00Z (block 11844486)",
-  "source": {
-    "repository": "github.com/garyyang-finchip/acd-framework",
-    "reference": "v0.2 reference implementation (assets/erc-acdf/contracts), commit with script/SepoliaCaseA.s.sol",
-    "compiler": "solc 0.8.24, via-IR, optimizer runs 1 (foundry.toml)",
-    "runtimeSizes": {
-      "ACDFPolicyRegistry": 9642,
-      "ACDFRegistry": 23514,
-      "ACDFTaskTenderAdapter": 5728
-    },
-    "note": "runtime code at the addresses below is byte-identical to the local build (eth_getCode length checked)"
-  },
-  "contracts": {
-    "ACDFPolicyRegistry": {
-      "address": "0x8b454635ad6CBd7649418df73776ED9FbD39f668",
-      "tx": "0xc7db9c2d4c85292bd06c4d6622782a59e921cbf67f8d1a708d99e5c0b13b46f6",
-      "gasUsed": 2137657
-    },
-    "ACDFRegistry": {
-      "address": "0x9ef9b6c68b2de3aCdaB42fbeca326816D1316a69",
-      "tx": "0x93df32c9900377377c14fea206143ad373d82eee038b5ed4cbc31358956c2546",
-      "gasUsed": 5137662,
-      "constructor": {
-        "policies": "0x8b454635ad6CBd7649418df73776ED9FbD39f668"
-      }
-    },
-    "ACDFTaskTenderAdapter": {
-      "address": "0x76986Fd0Cc636Bf4C54A2F9145463F9893b9635F",
-      "tx": "0x1764d3a89ef76e7ff25a366b5253504e976c96ce192b79f5acf7216da59df2ce",
-      "gasUsed": 1307744,
-      "constructor": {
-        "registry": "0x9ef9b6c68b2de3aCdaB42fbeca326816D1316a69",
-        "task": "0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7",
-        "policyId": "0x0f36cb699dafbdab0b08057665b6a716316e730409f5cbdfe53a5241f99ff279",
-        "margin": 1800
-      }
-    }
-  },
-  "external": {
-    "ERC8414TaskToken": "0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7"
-  },
-  "policy": {
-    "policyId": "0x0f36cb699dafbdab0b08057665b6a716316e730409f5cbdfe53a5241f99ff279",
-    "family": "0xf20031be734c7f39bbcabb4c4a6a0165a5380254c06fe514e12e467caf5a9d34",
-    "familyLabel": "keccak256(\"acdf.sepolia.case-a\")",
-    "version": 1,
-    "updateAuthority": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
-    "updateAuthorityNote": "held by the deployer account for now; a later version may move it",
-    "registeredTx": "0x81b68a6612efec60e68b3efdd914fa6d769e902957ff64dc240dc8f1451c9571",
-    "descriptorHash": "0xff7382fbb91c9d18d49dc9476513f4eab2acc65a7014fb48c3c081ff8e49954b",
-    "descriptor": "deployments/case-a/policy-descriptor.json",
-    "bodies": [
-      {
-        "index": 0,
-        "kind": "ROSTER_KOFN",
-        "acceptance": "SIGNED_BALLOTS",
-        "k": 3,
-        "window": 3600,
-        "members": [
-          "0xED0A3cC863cbf87aa9c8DCdB066b77E75e458D95",
-          "0x586F05f57E0161310A8d305e640f1A6bfE95E42b",
-          "0x4D0EA70a47a282AA665989ea61D6fAf58A9E2547",
-          "0xd24972e5909456e60815048735EfE6141f42B325",
-          "0xB108C913e2a94C0c6CAF21D83907aF8EBb1108D1"
-        ]
-      }
-    ],
-    "nodes": [
-      {
-        "index": 0,
-        "op": "BODY",
-        "body": 0
-      }
-    ],
-    "maxAppeals": 1,
-    "appealWindow": 600,
-    "appealable": 1,
-    "appealStanding": "ANYONE",
-    "maxTotalDuration": 10800,
-    "ackWindow": 0,
-    "allowAdvisory": false
-  },
-  "accounts": {
-    "deployer": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
-    "worker": "0x0218eeA626c95048416719460dC5Dd6D9eCc2906",
-    "note": "throwaway accounts created for this run"
-  },
-  "caseA": "deployments/sepolia-case-a.json"
+  "deployer": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+  "descriptorHashA": "0xff7382fbb91c9d18d49dc9476513f4eab2acc65a7014fb48c3c081ff8e49954b",
+  "descriptorHashA2": "0xbab398d44d9d6e98ec8f213116a0213837919311deb87936eac8d15122bfc7ee",
+  "jurors": [
+    "0xED0A3cC863cbf87aa9c8DCdB066b77E75e458D95",
+    "0x586F05f57E0161310A8d305e640f1A6bfE95E42b",
+    "0x4D0EA70a47a282AA665989ea61D6fAf58A9E2547",
+    "0xd24972e5909456e60815048735EfE6141f42B325",
+    "0xB108C913e2a94C0c6CAF21D83907aF8EBb1108D1"
+  ],
+  "policyA": "0xb231869b5b43bc5bb30fe71daff6c6d9f95090cab4396f9d02110e3198ed0401",
+  "policyA2": "0x3e431bbbb8011af8a03e34298966ac5f7f05b8343a91f423219fa859ed94d063",
+  "policyRegistry": "0x7e870B29C903e71517676d52FCCD20Ef96477A73",
+  "registry": "0xbA03B451B421b5041d7bE7b5Fd7DbcF3B6Aa1354",
+  "taskToken": "0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7",
+  "worker": "0x0218eeA626c95048416719460dC5Dd6D9eCc2906",
+  "tokenA": 13,
+  "tokenA2": 14,
+  "tdHashA": "0x4f17a6a6e82f5996cf989222c53f616a94c8a699b51ee5f3356ba56f23964051",
+  "taskHashA": "0x0ee14f85efe9968afcec429aa2fe2344f2000a2779ede696c2bdf14e87174dd7",
+  "tdHashA2": "0xe9f98b583c20e718cdface93e410ca78c9fd7fd9d07425f1f87daf14af7a60cd",
+  "taskHashA2": "0x64d7d184b33a8bae4ee2d905a63a32481cad7f3e223b832b493d975eaaf9c229",
+  "submissionA": 1,
+  "submissionA2": 1,
+  "resultHashA": "0x647c88ef9001fbe3f71275e7f100e8701e7f61cb014ca6899ee59a14d0acff8a",
+  "resultHashA2": "0x8f5ae8c01fce1381b3636500693c1e526a15d3f51e7d8f3b6943935eeca6e370",
+  "issueA": "0xf2e88a4eef58c75e56059a04dd29811239178dad2934e1e54fca2031385e1dc8",
+  "issueA2": "0x2ff1ec2f571a4d8189ef793dbb2b491f0a9d3fd3a07e747ca1e156c9dfaa4cdc",
+  "appealOpenUntilA": 1791526512,
+  "round2ClosesA2": 1791526812,
+  "done": true
 }

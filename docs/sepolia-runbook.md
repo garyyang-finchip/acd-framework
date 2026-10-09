@@ -84,6 +84,8 @@ forge script script/SepoliaCaseA.s.sol:Finalize --rpc-url $SEPOLIA_RPC_URL --bro
 
 Three transactions: `finalize(A)`, `execute(A)`, `settleRound(A2)`. The script checks every assertion of the table above and refuses to run while a window is open.
 
+The `finalAt` values the console prints come from the local execution of the script against the forked block, so both cases show the same instant; the on-chain values are the timestamps of the blocks that mined `finalize(A)` and `settleRound(A2)` (read them back with `getResult`).
+
 ## If Finalize is missed: closing a first attempt and rerunning
 
 If run 4 was not executed before the kernel's judgment window closed (two days after the
@@ -109,9 +111,27 @@ current assets (registries and policies stay) and points the state file at them;
 - every file in `broadcast/SepoliaCaseA.s.sol/11155111/` (transaction hashes, receipts, gas)
 - the console output of the four runs (optional)
 
-These are distilled into `deployments/sepolia.json` + `deployments/sepolia-cases.json`, the README
-addresses and the Magicians follow-up. Keys never leave the machine that runs the scripts: the
-scripts read them from the environment and Foundry stores only transaction records.
+These are distilled into `deployments/sepolia-cases.json`, the README addresses and the Magicians
+follow-up. Keys never leave the machine that runs the scripts: the scripts read them from the
+environment and Foundry stores only transaction records.
+
+## Record of the revision-2 run (2026-10-05 / 2026-10-09)
+
+| Run | Day (UTC) | Blocks | Result |
+|---|---|---|---|
+| DeployCore | 2026-10-05 | 11851558 | `ACDFPolicyRegistry` `0x7e870B29C903e71517676d52FCCD20Ef96477A73`, `ACDFRegistry` `0xbA03B451B421b5041d7bE7b5Fd7DbcF3B6Aa1354`, policies A `0xb231869b...0401` and A2 `0x3e431bbb...d063`, first-attempt adapters |
+| MintTasks, OpenCases (first attempt) | 2026-10-05 | 11851571-11851580 | tasks #9/#10; issues `0xf64cde86...1646` / `0xcdb8e61a...fdd0`; A Provisional(Yes), A2 Provisional(Yes) then appealed |
+| CloseFirstAttempt | 2026-10-09 | 11874938, 11875177-78 | A Final x Decided(Yes), late `execute` accepted by the kernel (`settleBy = 0`), paid; A2 Final x NoDecision, `claimUnjudged(10, 1)` paid |
+| RedeployAdapters | 2026-10-09 | 11875241-42 | adapters `0x09c3550cCAfc2E73B1f0edA3ECA2f5247bB24Da7` (A) and `0x078271c288141660753b1BfB67A3cfc2F06c8AC2` (A2) from the current assets |
+| MintTasks | 2026-10-09 | 11875284-87 | tasks #13/#14, 0.001 ETH each |
+| OpenCases | 2026-10-09 | 11875438-52 | issues `0xf2e88a4e...1dc8` / `0x2ff1ec2f...4cdc`; A: No + 3 Yes, settle (decidedAt 1791526056); A2: 3 Yes, settle, `appeal` at 1791526104 |
+| Finalize | 2026-10-09 | 11875531-33 | A: Final x Decided(Yes), finalAt 1791527052, `acceptFulfillment(13, 1)` paid; A2: round 2 NoDecision(QUORUM_NOT_MET), Final, decidedAt 1791527004, finalAt 1791527076, `execute` refused, submission Pending |
+
+Every transaction hash, gas figure and the decoded `getResult` of both issues are in
+`deployments/sepolia-cases.json`. The deployed runtime of all four contracts was compared with a
+fresh build of the assets (SHA-256 over the code with the immutable slots zeroed) and matches.
+Superseded on-chain artifacts (the v0.2 contracts, one accidental v0.2 duplicate, tasks #11/#12
+minted against adapters whose creation had run out of gas) are listed in the same file.
 
 ## Parameters of the cases (fixed in the script)
 

@@ -1,0 +1,12 @@
+{
+  "aExecutedThroughKernel": true,
+  "adapterA": "0xEd117ceC7879409D3673a3Bd7deb6AD1A49B5216",
+  "adapterA2": "0xf4fa00187aA7A0c96186D2F428b68160a3523be7",
+  "issueA": "0xf64cde86ba6c39584c077e0f1cf138c3e70b05a3d63b7e3bdfdf686b37ac1646",
+  "issueA2": "0xcdb8e61a18a0ae4334eb034a2d7fbf216845d6c2c1c65dfc5f63163e8dd5fdd0",
+  "note": "Finalize was not run inside the kernel judgment window; closed by CloseFirstAttempt",
+  "submissionA": 1,
+  "submissionA2": 1,
+  "tokenA": 9,
+  "tokenA2": 10
+}
