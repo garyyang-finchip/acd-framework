@@ -4,21 +4,21 @@ pragma solidity ^0.8.24;
 import {ACDFBase} from "./ACDFBase.t.sol";
 import {ACDFTypes as T} from "../assets/erc-acdf/contracts/ACDFTypes.sol";
 import {ACDFTaskTenderAdapter} from "../assets/erc-acdf/contracts/adapters/ACDFTaskTenderAdapter.sol";
-import {ITaskTender8414} from "../assets/erc-acdf/contracts/interfaces/ITaskTender8414.sol";
+import {ITaskTenderKernel} from "../assets/erc-acdf/contracts/interfaces/ITaskTenderKernel.sol";
 import {TaskToken} from "./fixtures/task-token/TaskToken.sol";
 import {ITaskTender} from "./fixtures/task-token/interfaces/ITaskTender.sol";
 
 /// Defensive-path fixture: a task whose views can be shaped freely (machine-settled or
 /// non-pending submissions), since the real kernel never produces those under an adapter authority.
 contract ShapedTask8414 {
-    ITaskTender8414.Submission public sub;
-    ITaskTender8414.TenderTerms public terms;
+    ITaskTenderKernel.Submission public sub;
+    ITaskTenderKernel.TenderTerms public terms;
     address public authority;
-    function set(address a, ITaskTender8414.Submission memory s, ITaskTender8414.TenderTerms memory t) external { authority = a; sub = s; terms = t; }
+    function set(address a, ITaskTenderKernel.Submission memory s, ITaskTenderKernel.TenderTerms memory t) external { authority = a; sub = s; terms = t; }
     function acceptanceAuthorityOf(uint256) external view returns (address) { return authority; }
-    function submissionOf(uint256, uint256) external view returns (ITaskTender8414.Submission memory) { return sub; }
-    function tenderTermsOf(uint256) external view returns (ITaskTender8414.TenderTerms memory) { return terms; }
-    function taskOf(uint256) external pure returns (ITaskTender8414.TaskBinding memory b) { return b; }
+    function submissionOf(uint256, uint256) external view returns (ITaskTenderKernel.Submission memory) { return sub; }
+    function tenderTermsOf(uint256) external view returns (ITaskTenderKernel.TenderTerms memory) { return terms; }
+    function taskOf(uint256) external pure returns (ITaskTenderKernel.TaskBinding memory b) { return b; }
     function acceptFulfillment(uint256, uint256) external {}
     function rejectFulfillment(uint256, uint256) external {}
 }
@@ -45,10 +45,10 @@ contract ACDFAdapter8414Test is ACDFBase {
         super.setUp();
         task = new TaskToken("Task Token", "TASK");
         T.PolicySpec memory s = minimalSpec(5, 3, 1 days);
-        s.family = keccak256("erc8414.acceptance");
+        s.family = keccak256("task-tender.acceptance");
         s.maxTotalDuration = 2 days;
         p = register(s);
-        adapter = new ACDFTaskTenderAdapter(reg, ITaskTender8414(address(task)), p, MARGIN);
+        adapter = new ACDFTaskTenderAdapter(reg, ITaskTenderKernel(address(task)), p, MARGIN);
         vm.deal(funder, 100 ether);
     }
 
@@ -107,7 +107,7 @@ contract ACDFAdapter8414Test is ACDFBase {
         // judgment window shorter than the margin itself
         uint256 id2 = mintWithAdapter(terms(30 minutes, 0, 0, 0, 2));
         uint256 sid2 = submit(id2, RES);
-        vm.expectRevert("ACDF8414: no execution window");
+        vm.expectRevert("ACDFTender: no execution window");
         adapter.open(id2, sid2);
     }
 
@@ -131,24 +131,24 @@ contract ACDFAdapter8414Test is ACDFBase {
         vm.prank(funder);
         task.fundTask{value: 2 ether}(id, 2 ether);
         uint256 sid = submit(id, RES);
-        vm.expectRevert("ACDF8414: not the acceptance authority");
+        vm.expectRevert("ACDFTender: not the acceptance authority");
         adapter.open(id, sid);
     }
 
     function test_open_rejects_non_pending_or_machine_path_submissions() public {
         ShapedTask8414 shaped = new ShapedTask8414();
-        ACDFTaskTenderAdapter a2 = new ACDFTaskTenderAdapter(reg, ITaskTender8414(address(shaped)), p, MARGIN);
-        ITaskTender8414.TenderTerms memory t;
+        ACDFTaskTenderAdapter a2 = new ACDFTaskTenderAdapter(reg, ITaskTenderKernel(address(shaped)), p, MARGIN);
+        ITaskTenderKernel.TenderTerms memory t;
         t.judgmentWindow = 7 days; t.rewardPerCompletion = 1 ether;
-        ITaskTender8414.Submission memory s;
+        ITaskTenderKernel.Submission memory s;
         s.fulfiller = worker; s.resultHash = RES; s.taskVersion = 1; s.submittedAt = uint64(vm.getBlockTimestamp());
-        s.status = ITaskTender8414.SubmissionStatus.Accepted;
+        s.status = ITaskTenderKernel.SubmissionStatus.Accepted;
         shaped.set(address(a2), s, t);
-        vm.expectRevert("ACDF8414: not pending");
+        vm.expectRevert("ACDFTender: not pending");
         a2.open(1, 1);
-        s.status = ITaskTender8414.SubmissionStatus.Pending; s.machineSettled = true;
+        s.status = ITaskTenderKernel.SubmissionStatus.Pending; s.machineSettled = true;
         shaped.set(address(a2), s, t);
-        vm.expectRevert("ACDF8414: machine-path submission");
+        vm.expectRevert("ACDFTender: machine-path submission");
         a2.open(1, 1);
     }
 
@@ -156,11 +156,11 @@ contract ACDFAdapter8414Test is ACDFBase {
         uint256 id = mintWithAdapter(terms(7 days, 0, 0, 0, 2));
         uint256 sid = submit(id, RES);
         bytes32 issueId = adapter.open(id, sid);
-        vm.expectRevert("ACDF8414: case open or decided");
+        vm.expectRevert("ACDFTender: case open or decided");
         adapter.open(id, sid);
         reject3(issueId);
         reg.settleRound(issueId);
-        vm.expectRevert("ACDF8414: case open or decided"); // decided: re-filing cannot shop for another panel
+        vm.expectRevert("ACDFTender: case open or decided"); // decided: re-filing cannot shop for another panel
         adapter.open(id, sid);
     }
 
@@ -183,7 +183,7 @@ contract ACDFAdapter8414Test is ACDFBase {
         uint256 sid = submit(id, RES);
         bytes32 issueId = adapter.open(id, sid);
         approve3(issueId);
-        vm.expectRevert("ACDF8414: not final");
+        vm.expectRevert("ACDFTender: not final");
         adapter.execute(issueId);
         reg.settleRound(issueId);
         assertFinalDecided(issueId, true);
@@ -198,7 +198,7 @@ contract ACDFAdapter8414Test is ACDFBase {
         T.Enactment memory e = reg.getEnactment(issueId, address(adapter), adapter.EFFECT_ACCEPT());
         assertEq(uint8(e.status), uint8(T.EnactmentStatus.Enacted));
         assertEq(e.reporter, address(adapter));
-        vm.expectRevert("ACDF8414: already enacted");
+        vm.expectRevert("ACDFTender: already enacted");
         adapter.execute(issueId);
     }
 
@@ -225,7 +225,7 @@ contract ACDFAdapter8414Test is ACDFBase {
         vm.warp(vm.getBlockTimestamp() + 1 days + 1);
         reg.settleRound(issueId);
         assertFinalNoDecision(issueId, T.Reason.QUORUM_NOT_MET);
-        vm.expectRevert("ACDF8414: no decision; judgment clock governs");
+        vm.expectRevert("ACDFTender: no decision; judgment clock governs");
         adapter.execute(issueId);
         // the registry's early NoDecision does not start, stop or shorten 8414's own default
         vm.expectRevert("TaskToken: window open");
@@ -309,15 +309,15 @@ contract ACDFAdapter8414Test is ACDFBase {
     }
 
     function test_execute_unknown_issue_reverts() public {
-        vm.expectRevert("ACDF8414: unknown issue");
+        vm.expectRevert("ACDFTender: unknown issue");
         adapter.execute(keccak256("nope"));
     }
 
     function test_adapter_constructor_validates_inputs() public {
-        vm.expectRevert("ACDF8414: unknown policy");
-        new ACDFTaskTenderAdapter(reg, ITaskTender8414(address(task)), keccak256("ghost"), MARGIN);
-        vm.expectRevert("ACDF8414: zero address");
-        new ACDFTaskTenderAdapter(reg, ITaskTender8414(address(0)), p, MARGIN);
+        vm.expectRevert("ACDFTender: unknown policy");
+        new ACDFTaskTenderAdapter(reg, ITaskTenderKernel(address(task)), keccak256("ghost"), MARGIN);
+        vm.expectRevert("ACDFTender: zero address");
+        new ACDFTaskTenderAdapter(reg, ITaskTenderKernel(address(0)), p, MARGIN);
     }
 
     event FulfillmentAccepted(uint256 indexed tokenId, uint256 indexed submissionId, address indexed fulfiller, uint256 reward);

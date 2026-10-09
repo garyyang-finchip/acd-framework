@@ -15,7 +15,7 @@ Generated: 2026-10-06 (UTC), reference implementation v0.2.2 (round-bound on-cha
 |---|---|---|
 | ACDFPolicyRegistry | 9,765 | 9,792 |
 | ACDFRegistry | 24,212 | 24,537 |
-| ACDFTaskTenderAdapter | 5,857 | 6,574 |
+| ACDFTaskTenderAdapter | 5,870 | 6,587 |
 
 ## Result
 

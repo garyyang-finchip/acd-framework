@@ -603,6 +603,7 @@ Both cases use exactly the same objects and transitions. Case A's composition is
 | 39 | Obligation identity is separated from subject identity (Magicians review, chugarchugarr): `IssueInput.obligationId` is committed by the consumer (CONSUMER_FILED: required non-zero; STANDING_ACCEPTANCE: fixed in the acceptance or, when zero, derived as keccak256(abi.encode(subject)); POST_ACK: set at acknowledgment); exclusivity key = (consumer, obligationId, question); the full Subject stays frozen on the issue. The 8414 adapter scopes its obligation per submission: keccak256(abi.encode(task, tokenId, submissionId)) | Magicians review 1 |
 | 40 | Appeal mode is a required field of the hashed PolicySpec, no kernel default: PRESERVE_UNLESS_OVERTURNED (an appeal round ending in NoDecision leaves the decision under appeal standing) or REQUIRE_FRESH_DECISION (opening an appeal vacates the earlier decision; only the last round's own decision can be adopted, otherwise NoDecision). Security Considerations warn that preserve + a short appeal round lets the clock confirm the challenged result; per-round timing is a reserved extension | Magicians review 1 (chugarchugarr, predge-ai) |
 | 41 | Finality by adoption is distinguishable from finality by substantive decision: `Result.adoptedFromEarlierRound` = Decided && sourceRound < roundCount; relying contracts may commit to treat the two differently. Interface ids after revision 2: IACDFPolicyRegistry 0xb362eb4e, IACDFRegistry 0xd31aae30; ACDFRegistry runtime 24,212 B (364 B under EIP-170) | Magicians review 1 (predge-ai) |
+| 42 | Editor review of PR #2046 (jochem-brouwer) adopted: RFC 2119/8174 linked; `supportsInterface` listed in the §4/§11 interface blocks (ids unchanged); Test Cases no longer refer to anything outside the proposal's assets; Security Considerations carries no RFC 2119 keywords (each requirement already lives in the Specification); the vendored kernel interface is number-neutral — `ITaskTenderKernel.sol`, adapter comments, revert prefix `ACDFTender:` and the label preimages (`acdf.task-tender.acceptance.v1`, `task-tender.acceptFulfillment`, `task-tender.rejectFulfillment`, `task-tender.noDecision.deferToJudgmentClock`) carry no proposal number. The adapter bytecode changes; registries do not | ERCs editor review |
 
 ### 14.2 Open before the ERC text
 
@@ -654,7 +655,7 @@ acd-framework/
 │   │   ├── ACDFTypes.sol
 │   │   ├── ACDFPolicyRegistry.sol
 │   │   ├── ACDFRegistry.sol
-│   │   ├── interfaces/            # IACDFPolicyRegistry, IACDFRegistry, ITaskTender8414
+│   │   ├── interfaces/            # IACDFPolicyRegistry, IACDFRegistry, ITaskTenderKernel
 │   │   ├── libraries/             # SignatureChecker (ECDSA + ERC-1271)
 │   │   └── adapters/              # ACDFTaskTenderAdapter
 │   ├── schemas/                   # policy-spec, result-receipt
@@ -669,7 +670,7 @@ acd-framework/
 
 ## 16. Reference implementation v0.2 and test summary
 
-Toolchain: Foundry forge 1.5.1-stable, solc 0.8.24, via-IR, optimizer runs 1. Runtime sizes: ACDFPolicyRegistry 9,765 B, ACDFRegistry 24,212 B (EIP-170 limit 24,576 B), ACDFTaskTenderAdapter 5,857 B. ERC-165 interface ids: `IACDFPolicyRegistry` 0xb362eb4e, `IACDFRegistry` 0xd31aae30.
+Toolchain: Foundry forge 1.5.1-stable, solc 0.8.24, via-IR, optimizer runs 1. Runtime sizes: ACDFPolicyRegistry 9,765 B, ACDFRegistry 24,212 B (EIP-170 limit 24,576 B), ACDFTaskTenderAdapter 5,870 B. ERC-165 interface ids: `IACDFPolicyRegistry` 0xb362eb4e, `IACDFRegistry` 0xd31aae30.
 
 | Review test group | Suites | Coverage |
 |---|---|---|

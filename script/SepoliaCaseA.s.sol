@@ -28,7 +28,7 @@ import {ACDFRegistry} from "../assets/erc-acdf/contracts/ACDFRegistry.sol";
 import {ACDFTaskTenderAdapter} from "../assets/erc-acdf/contracts/adapters/ACDFTaskTenderAdapter.sol";
 import {IACDFPolicyRegistry} from "../assets/erc-acdf/contracts/interfaces/IACDFPolicyRegistry.sol";
 import {IACDFRegistry} from "../assets/erc-acdf/contracts/interfaces/IACDFRegistry.sol";
-import {ITaskTender8414} from "../assets/erc-acdf/contracts/interfaces/ITaskTender8414.sol";
+import {ITaskTenderKernel} from "../assets/erc-acdf/contracts/interfaces/ITaskTenderKernel.sol";
 import {ITaskTender} from "../test/fixtures/task-token/interfaces/ITaskTender.sol";
 import {TaskToken} from "../test/fixtures/task-token/TaskToken.sol";
 
@@ -174,8 +174,8 @@ contract DeployCore is CaseBase {
             T.AppealMode.REQUIRE_FRESH_DECISION, "deployments/case-a2/policy-descriptor.json");
         bytes32 policyA = pol.registerPolicy(specA);
         bytes32 policyA2 = pol.registerPolicy(specA2);
-        ACDFTaskTenderAdapter adapterA = new ACDFTaskTenderAdapter(IACDFRegistry(address(reg)), ITaskTender8414(task), policyA, MARGIN);
-        ACDFTaskTenderAdapter adapterA2 = new ACDFTaskTenderAdapter(IACDFRegistry(address(reg)), ITaskTender8414(task), policyA2, MARGIN);
+        ACDFTaskTenderAdapter adapterA = new ACDFTaskTenderAdapter(IACDFRegistry(address(reg)), ITaskTenderKernel(task), policyA, MARGIN);
+        ACDFTaskTenderAdapter adapterA2 = new ACDFTaskTenderAdapter(IACDFRegistry(address(reg)), ITaskTenderKernel(task), policyA2, MARGIN);
         payable(worker).transfer(WORKER_GAS_MONEY);
         vm.stopBroadcast();
 

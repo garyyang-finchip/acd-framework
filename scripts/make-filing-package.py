@@ -76,8 +76,10 @@ def lint_erc(text, number, discussions_ok):
         errors.append("required sections out of order")
     if not body.rstrip().endswith("Copyright and related rights waived via [CC0](../LICENSE.md)."):
         errors.append("file must end with the CC0 copyright line")
-    # external URLs (only the preamble may carry the Magicians URL)
+    # external URLs (only the preamble may carry the Magicians URL); the ERCs lint allows rfc-editor.org
     for url in re.findall(r"https?://[^\s)\]]+", body):
+        if url.startswith("https://www.rfc-editor.org/rfc/"):
+            continue
         errors.append(f"external URL in body: {url}")
     # unmerged drafts referenced by number
     for n in UNMERGED:
