@@ -43,10 +43,18 @@ export CASE_MNEMONIC="twelve words ..."
 export ACDF_AUTHORITY=0x...
 ```
 
+## Gas estimation on Sepolia
+
+Sepolia's execution costs no longer match the EVM model inside the Foundry build used here: the
+node estimates roughly two to three times the gas that the local simulation computes (observed
+on 2026-10-09), so transactions sent with Foundry's default 30 percent buffer run out of gas and
+revert on chain while the simulation passes. Pass `--gas-estimate-multiplier 400` to every
+broadcast until the toolchain catches up; unused gas is refunded, so the extra limit costs nothing.
+
 ## Run 1: core deployment
 
 ```bash
-forge script script/SepoliaCaseA.s.sol:DeployCore --rpc-url $SEPOLIA_RPC_URL --broadcast -vv
+forge script script/SepoliaCaseA.s.sol:DeployCore --rpc-url $SEPOLIA_RPC_URL --broadcast --gas-estimate-multiplier 400 -vv
 ```
 
 Writes `deployments/sepolia.json` (addresses, both `policyId`s, families, descriptor hashes, jurors, worker).
@@ -54,7 +62,7 @@ Writes `deployments/sepolia.json` (addresses, both `policyId`s, families, descri
 ## Run 2: mint and fund both tasks
 
 ```bash
-forge script script/SepoliaCaseA.s.sol:MintTasks --rpc-url $SEPOLIA_RPC_URL --broadcast -vv
+forge script script/SepoliaCaseA.s.sol:MintTasks --rpc-url $SEPOLIA_RPC_URL --broadcast --gas-estimate-multiplier 400 -vv
 ```
 
 `tdHash = keccak256(deployments/case-a/task-document.json)` resp. `case-a2/`, `taskHash = keccak256("acdf.case-a.task.v1" || tdHash)` resp. `"acdf.case-a2.task.v1"`, 2-day judgment window, one completion at 0.001 ETH each.
@@ -62,7 +70,7 @@ forge script script/SepoliaCaseA.s.sol:MintTasks --rpc-url $SEPOLIA_RPC_URL --br
 ## Run 3: submissions, cases, ballots, settlements, appeal
 
 ```bash
-forge script script/SepoliaCaseA.s.sol:OpenCases --rpc-url $SEPOLIA_RPC_URL --broadcast -vv
+forge script script/SepoliaCaseA.s.sol:OpenCases --rpc-url $SEPOLIA_RPC_URL --broadcast --gas-estimate-multiplier 400 -vv
 ```
 
 Nine transactions. The log prints two instants: Case A's `appealOpenUntil` (ten minutes after the third approval) and the close of Case A2's round 2 (fifteen minutes after the appeal). Both are simulation estimates and can be a few blocks early; wait a minute beyond the later one.
@@ -70,7 +78,7 @@ Nine transactions. The log prints two instants: Case A's `appealOpenUntil` (ten 
 ## Run 4: finality (after both windows)
 
 ```bash
-forge script script/SepoliaCaseA.s.sol:Finalize --rpc-url $SEPOLIA_RPC_URL --broadcast -vv
+forge script script/SepoliaCaseA.s.sol:Finalize --rpc-url $SEPOLIA_RPC_URL --broadcast --gas-estimate-multiplier 400 -vv
 ```
 
 Three transactions: `finalize(A)`, `execute(A)`, `settleRound(A2)`. The script checks every assertion of the table above and refuses to run while a window is open.
@@ -82,8 +90,8 @@ submissions), the registry side still finalizes, but the case record would no lo
 intended path. Two extra runs handle this:
 
 ```bash
-forge script script/SepoliaCaseA.s.sol:CloseFirstAttempt --rpc-url $SEPOLIA_RPC_URL --broadcast -vv
-forge script script/SepoliaCaseA.s.sol:RedeployAdapters  --rpc-url $SEPOLIA_RPC_URL --broadcast -vv
+forge script script/SepoliaCaseA.s.sol:CloseFirstAttempt --rpc-url $SEPOLIA_RPC_URL --broadcast --gas-estimate-multiplier 400 -vv
+forge script script/SepoliaCaseA.s.sol:RedeployAdapters  --rpc-url $SEPOLIA_RPC_URL --broadcast --gas-estimate-multiplier 400 -vv
 ```
 
 `CloseFirstAttempt` finalizes Case A and executes it late (the kernel bounds `acceptFulfillment` by

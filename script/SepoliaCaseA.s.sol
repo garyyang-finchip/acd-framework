@@ -371,15 +371,20 @@ contract CloseFirstAttempt is CaseBase {
         ITaskTender t = ITaskTender(task);
         require(block.timestamp > t.submissionOf(tokenA, subA).submittedAt + JUDGMENT_WINDOW, "judgment window still open: use Finalize");
 
+        // Idempotent: every step is skipped when the chain already shows its effect, so a run that
+        // was cut short (for example by under-estimated gas) can simply be repeated.
         uint256 before = worker.balance;
         vm.startBroadcast(pk);
-        reg.finalize(issueA);          // the registry's decision is unaffected by the kernel's clock
-        adapterA.execute(issueA);      // late: lands iff the kernel still allows acceptFulfillment (settleBy = 0 -> yes)
-        reg.settleRound(issueA2);      // round 2 ended without ballots -> NoDecision -> Final (REQUIRE_FRESH_DECISION)
-        t.claimUnjudged(tokenA2, subA2); // no decision: the kernel's committed default pays the worker (permissionless)
+        if (reg.getResult(issueA).state == T.ProcedureState.Provisional) reg.finalize(issueA); // the registry's decision is unaffected by the kernel's clock
+        if (t.submissionOf(tokenA, subA).status == ITaskTender.SubmissionStatus.Pending
+            && reg.getEnactment(issueA, address(adapterA), adapterA.EFFECT_ACCEPT()).status != T.EnactmentStatus.Failed) {
+            adapterA.execute(issueA); // late: lands iff the kernel still allows acceptFulfillment (settleBy = 0 -> yes)
+        }
+        if (reg.getResult(issueA2).state == T.ProcedureState.Deciding) reg.settleRound(issueA2); // round 2 ended empty -> NoDecision -> Final (REQUIRE_FRESH_DECISION)
+        if (t.submissionOf(tokenA2, subA2).status == ITaskTender.SubmissionStatus.Pending) t.claimUnjudged(tokenA2, subA2); // no decision: the kernel's committed default pays the worker
         vm.stopBroadcast();
-        bool aEnacted = t.submissionOf(tokenA, subA).status == ITaskTender.SubmissionStatus.Accepted;
-        if (!aEnacted) {
+        bool aEnacted = reg.getEnactment(issueA, address(adapterA), adapterA.EFFECT_ACCEPT()).status == T.EnactmentStatus.Enacted;
+        if (t.submissionOf(tokenA, subA).status == ITaskTender.SubmissionStatus.Pending) {
             vm.startBroadcast(pk);
             t.claimUnjudged(tokenA, subA); // the kernel refused the late accept: default pays instead
             vm.stopBroadcast();
@@ -394,7 +399,6 @@ contract CloseFirstAttempt is CaseBase {
         require(reg.getRound(issueA2, 1).status == T.NodeStatus.Yes, "A2 round 1 Yes on record, vacated");
         require(t.submissionOf(tokenA, subA).status == ITaskTender.SubmissionStatus.Accepted, "A settled");
         require(t.submissionOf(tokenA2, subA2).status == ITaskTender.SubmissionStatus.Accepted, "A2 paid by default");
-        if (t.creditOf(tokenA, worker) + t.creditOf(tokenA2, worker) == 0) require(worker.balance == before + 2 * REWARD, "worker paid twice");
         console2.log("A executed late through acceptFulfillment:", aEnacted);
 
         string memory j = "first";
