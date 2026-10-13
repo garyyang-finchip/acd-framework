@@ -320,6 +320,44 @@ contract ACDFAdapter8414Test is ACDFBase {
         new ACDFTaskTenderAdapter(reg, ITaskTenderKernel(address(0)), p, MARGIN);
     }
 
+    /// Contributed by ted0x (Magicians topic 29850, #9): the kernel's default claim lands before the
+    /// adapter executes. The default pays once; the adapter's attempt is recorded as Failed, the
+    /// Final decision is untouched, and repeating execute neither pays again nor changes anything.
+    function test_default_claim_before_execute_pays_once_but_enactment_is_failed() public {
+        uint256 id = mintWithAdapter(terms(7 days, 0, 0, 0, 2));
+        uint256 sid = submit(id, RES);
+        uint256 submittedAt = vm.getBlockTimestamp();
+        bytes32 issueId = adapter.open(id, sid);
+        approve3(issueId);
+        reg.settleRound(issueId);
+        assertFinalDecided(issueId, true);
+        bytes32 finalResult = keccak256(abi.encode(result(issueId)));
+        uint256 before = worker.balance;
+
+        vm.warp(submittedAt + 7 days + 1);
+        // An independent caller gets the kernel's default claim included first.
+        vm.prank(rando);
+        task.claimUnjudged(id, sid);
+        assertEq(worker.balance, before + 1 ether);
+        assertEq(uint8(task.submissionOf(id, sid).status), uint8(ITaskTender.SubmissionStatus.Accepted));
+        assertEq(task.pendingOf(id), 0);
+
+        bytes32 effect = adapter.EFFECT_ACCEPT();
+        for (uint256 attempt = 0; attempt < 2; attempt++) {
+            // This attempt fails at the kernel because the submission is already terminal.
+            // The failure must not undo the successful default or pay the reward twice.
+            adapter.execute(issueId);
+            T.Enactment memory e = reg.getEnactment(issueId, address(adapter), effect);
+            assertEq(uint8(e.status), uint8(T.EnactmentStatus.Failed));
+            (, bool enacted,,,,,) = adapter.caseOf(issueId);
+            assertFalse(enacted);
+            assertEq(keccak256(abi.encode(result(issueId))), finalResult);
+            assertEq(worker.balance, before + 1 ether);
+            assertEq(uint8(task.submissionOf(id, sid).status), uint8(ITaskTender.SubmissionStatus.Accepted));
+            assertEq(task.pendingOf(id), 0);
+        }
+    }
+
     event FulfillmentAccepted(uint256 indexed tokenId, uint256 indexed submissionId, address indexed fulfiller, uint256 reward);
     event FulfillmentRejected(uint256 indexed tokenId, uint256 indexed submissionId);
 }

@@ -356,9 +356,10 @@ contract ACDFCompositionTest is ACDFBase {
 
     function test_unreferenced_node_and_doubly_referenced_node_rejected() public {
         T.Node[] memory nodes = new T.Node[](3);
-        nodes[0] = bodyNode(0);          // root uses body 0 only
-        nodes[1] = bodyNode(1);          // never referenced
-        nodes[2] = bodyNode(1);
+        uint32[] memory one = new uint32[](1); one[0] = 1;
+        nodes[0] = combNode(T.Combinator.ALL, 0, one); // root references node 1 only
+        nodes[1] = bodyNode(0);
+        nodes[2] = bodyNode(1);          // never referenced
         expectRegisterRevert(spec(baseBodies(), nodes, keccak256("g3")), "ACDF: node not in tree");
 
         T.Node[] memory nodes2 = new T.Node[](4);
@@ -367,6 +368,67 @@ contract ACDFCompositionTest is ACDFBase {
         nodes2[2] = bodyNode(0);
         nodes2[3] = bodyNode(1);
         expectRegisterRevert(spec(baseBodies(), nodes2, keccak256("g4")), "ACDF: node not in tree");
+    }
+
+    // Body roles (Magicians topic 29850, #10, Revinand): a body is at most one BODY leaf, a veto
+    // body never votes as a leaf, every body is used. Composition combines distinct bodies' decisions.
+
+    function test_body_referenced_by_two_leaves_rejected() public {
+        // KOFM(2 of 3) over BODY(0), BODY(0), BODY(1): one decision would fill two threshold slots.
+        T.Node[] memory nodes = new T.Node[](4);
+        nodes[0] = combNode(T.Combinator.KOFM, 2, u32(1, 2, 3));
+        nodes[1] = bodyNode(0);
+        nodes[2] = bodyNode(0);
+        nodes[3] = bodyNode(1);
+        expectRegisterRevert(spec(baseBodies(), nodes, keccak256("r1")), "ACDF: body reused");
+    }
+
+    function test_veto_body_voting_inside_guarded_subtree_rejected() public {
+        // VETO(vetoBody 0) over ALL(BODY(0), BODY(1)): body 0 Yes vetoes, body 0 No blocks ALL; never Yes.
+        T.Node[] memory nodes = new T.Node[](4);
+        nodes[0] = vetoNode(1, 0, T.VetoSilence.PASS_THROUGH);
+        nodes[1] = combNode(T.Combinator.ALL, 0, u32(2, 3));
+        nodes[2] = bodyNode(0);
+        nodes[3] = bodyNode(1);
+        expectRegisterRevert(spec(baseBodies(), nodes, keccak256("r2")), "ACDF: veto body votes");
+    }
+
+    function test_veto_body_voting_outside_guarded_subtree_rejected() public {
+        // ALL(VETO(vetoBody 0 -> BODY(1)), BODY(0)): the same dead tree with the leaf outside the guard.
+        T.Node[] memory nodes = new T.Node[](4);
+        nodes[0] = combNode(T.Combinator.ALL, 0, u32(1, 3));
+        nodes[1] = vetoNode(2, 0, T.VetoSilence.PASS_THROUGH);
+        nodes[2] = bodyNode(1);
+        nodes[3] = bodyNode(0);
+        expectRegisterRevert(spec(baseBodies(), nodes, keccak256("r3")), "ACDF: veto body votes");
+    }
+
+    function test_one_veto_body_guarding_two_targets_accepted() public {
+        // ALL(VETO(0 -> Tech), VETO(0 -> Econ)): one screening body guards two separate targets.
+        T.BodySpec[] memory bodies = new T.BodySpec[](3);
+        bodies[0] = chamber(3, 2, 1, 12 hours);  // Screening
+        bodies[1] = chamber(0, 3, 2, 1 days);    // Tech
+        bodies[2] = chamber(2, 3, 2, 1 days);    // Econ
+        T.Node[] memory nodes = new T.Node[](5);
+        nodes[0] = combNode(T.Combinator.ALL, 0, u32(1, 2));
+        nodes[1] = vetoNode(3, 0, T.VetoSilence.PASS_THROUGH);
+        nodes[2] = vetoNode(4, 0, T.VetoSilence.PASS_THROUGH);
+        nodes[3] = bodyNode(1);
+        nodes[4] = bodyNode(2);
+        bytes32 p = register(spec(bodies, nodes, keccak256("r4")));
+        bytes32 id = fileAsConsumer(p, 1);
+        vote(id, 0, 3, false); vote(id, 0, 4, false);   // explicit clearance of the shared veto body
+        vote(id, 1, 0, true);  vote(id, 1, 1, true);    // Tech
+        vote(id, 2, 3, true);  vote(id, 2, 4, true);    // Econ
+        (T.NodeStatus st,) = root(id);
+        assertEq(uint8(st), uint8(T.NodeStatus.Yes));
+    }
+
+    function test_unused_body_rejected() public {
+        // two bodies declared, only body 0 in the tree: the idle body would still vote and stretch the round.
+        T.Node[] memory nodes = new T.Node[](1);
+        nodes[0] = bodyNode(0);
+        expectRegisterRevert(spec(baseBodies(), nodes, keccak256("r5")), "ACDF: body unused");
     }
 
     function test_empty_graph_bad_body_index_and_bad_k_rejected() public {

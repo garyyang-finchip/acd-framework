@@ -39,7 +39,8 @@
   "runtimeVerification": {
     "method": "eth_getCode of each contract, with every immutable slot (positions from the compiler's immutableReferences) zeroed, hashed with SHA-256 and compared with the deployedBytecode of a fresh build of assets/erc-acdf/contracts (forge 1.5.1, solc 0.8.24, via-IR, optimizer runs 1)",
     "result": "all four contracts match the current assets byte for byte outside the immutable slots; sizes 9,765 / 24,212 / 5,870 / 5,870 bytes",
-    "firstAttemptAdapters": "built from the 2026-10-05 source (before the editor-review rename of the kernel interface and labels); they differ from the current adapter bytecode and are superseded"
+    "firstAttemptAdapters": "built from the 2026-10-05 source (before the editor-review rename of the kernel interface and labels); they differ from the current adapter bytecode and are superseded",
+    "laterChanges": "2026-10-13: ACDFPolicyRegistry gained three validation rules (ACDF: body reused / veto body votes / body unused, 10,201 B). The deployed registry predates them; policies A and A2 have one body each and are unaffected. Redeploy with the next batch."
   },
   "accounts": {
     "deployer": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",

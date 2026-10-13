@@ -2,7 +2,7 @@
 
 > Qualified participants form collective decisions with defined effect, within explicit authorization, under verifiable and composable rules.
 
-**Status:** design memo v0.2, reference implementation v0.2 (Solidity, Foundry), 129 passing tests, cross-language vectors, and the draft ERC text (`ERCS/erc-acdf.md`), filed as **ERC-8436** (ethereum/ERCs pull request #2046, https://github.com/ethereum/ERCs/pull/2046; number assigned 2026-10-05) and under discussion on Ethereum Magicians (https://ethereum-magicians.org/t/erc-8436-agent-collective-decision-framework/29850). Deployed on Sepolia: revision 2 (the code in this repository) with two live cases completed on 2026-10-09 — Case A (Final x Decided(Yes), paid through the real `acceptFulfillment`) and Case A2 (appealed under REQUIRE_FRESH_DECISION, Final x NoDecision, execution refused) — recorded in `deployments/sepolia-cases.json`; the v0.2 deployment of 2026-10-04 is archived.
+**Status:** design memo v0.2, reference implementation v0.2 (Solidity, Foundry), 135 passing tests, cross-language vectors, and the draft ERC text (`ERCS/erc-acdf.md`), filed as **ERC-8436** (ethereum/ERCs pull request #2046, https://github.com/ethereum/ERCs/pull/2046; number assigned 2026-10-05) and under discussion on Ethereum Magicians (https://ethereum-magicians.org/t/erc-8436-agent-collective-decision-framework/29850). Deployed on Sepolia: revision 2 (the code in this repository) with two live cases completed on 2026-10-09 — Case A (Final x Decided(Yes), paid through the real `acceptFulfillment`) and Case A2 (appealed under REQUIRE_FRESH_DECISION, Final x NoDecision, execution refused) — recorded in `deployments/sepolia-cases.json`; the v0.2 deployment of 2026-10-04 is archived.
 
 ## What it is
 
@@ -54,7 +54,7 @@ npm install && node tools/vectors.js # optional: regenerate vectors
 | `ACDFTaskTenderAdapter` (policy A, PRESERVE_UNLESS_OVERTURNED) | `0x09c3550cCAfc2E73B1f0edA3ECA2f5247bB24Da7` | 5,870 B |
 | `ACDFTaskTenderAdapter` (policy A2, REQUIRE_FRESH_DECISION) | `0x078271c288141660753b1BfB67A3cfc2F06c8AC2` | 5,870 B |
 
-All four match the bytecode built from `assets/erc-acdf/contracts` outside their immutable slots. Policy ids `0xb231869b...0401` (A) and `0x3e431bbb...d063` (A2), family authority = deployer.
+All four match the bytecode built from `assets/erc-acdf/contracts` outside their immutable slots. Policy ids `0xb231869b...0401` (A) and `0x3e431bbb...d063` (A2), family authority = deployer. The deployed `ACDFPolicyRegistry` predates the body-role validation added after the second Magicians review (a body as two `BODY` leaves, a voting veto body, an idle body — now rejected at registration); both registered policies have a single body and are unaffected, and the registry will be redeployed with the next batch of changes.
 
 - **Case A** (task #13, issue `0xf2e88a4e...1dc8`): one dissent and three signed approvals, settle, appeal window passes, `finalize` -> Final x Decided(Yes), `adoptedFromEarlierRound = false`; `execute` -> `acceptFulfillment(13, 1)` pays the worker 0.001 ETH.
 - **Case A2** (task #14, issue `0x2ff1ec2f...4cdc`): three approvals, settle -> Provisional(Yes), `appeal` -> round 2, no ballots, round 2 settles NoDecision(QUORUM_NOT_MET) -> Final x NoDecision (`roundCount 2`, `sourceRound 2`); the round-1 Yes is vacated under REQUIRE_FRESH_DECISION, the adapter refuses `execute`, the submission stays Pending and the tender's own `claimUnjudged` governs.

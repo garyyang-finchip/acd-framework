@@ -13,30 +13,30 @@ Generated: 2026-10-06 (UTC), reference implementation v0.2.2 (round-bound on-cha
 
 | Contract | Runtime | Initcode |
 |---|---|---|
-| ACDFPolicyRegistry | 9,765 | 9,792 |
+| ACDFPolicyRegistry | 10,201 | 10,228 |
 | ACDFRegistry | 24,212 | 24,537 |
 | ACDFTaskTenderAdapter | 5,870 | 6,587 |
 
 ## Result
 
 ```
-Ran 16 tests for test/ACDFAdapter8414.t.sol:ACDFAdapter8414Test
-Suite result: ok. 16 passed; 0 failed; 0 skipped; finished in 9.14ms (7.25ms CPU time)
-Ran 25 tests for test/ACDFAdmission.t.sol:ACDFAdmissionTest
-Suite result: ok. 25 passed; 0 failed; 0 skipped; finished in 6.61ms (5.02ms CPU time)
+Ran 17 tests for test/ACDFAdapter8414.t.sol:ACDFAdapter8414Test
+Suite result: ok. 17 passed; 0 failed; 0 skipped; finished in 10.23ms (8.59ms CPU time)
 Ran 26 tests for test/ACDFMinimal.t.sol:ACDFMinimalTest
-Suite result: ok. 26 passed; 0 failed; 0 skipped; finished in 16.38ms (14.97ms CPU time)
+Suite result: ok. 26 passed; 0 failed; 0 skipped; finished in 12.20ms (10.83ms CPU time)
+Ran 25 tests for test/ACDFAdmission.t.sol:ACDFAdmissionTest
+Suite result: ok. 25 passed; 0 failed; 0 skipped; finished in 5.25ms (3.74ms CPU time)
 Ran 5 tests for test/ACDFCaseB.t.sol:ACDFCaseBTest
-Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 6.88ms (5.18ms CPU time)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 5.65ms (4.39ms CPU time)
 Ran 19 tests for test/ACDFRounds.t.sol:ACDFRoundsTest
-Suite result: ok. 19 passed; 0 failed; 0 skipped; finished in 10.29ms (8.61ms CPU time)
+Suite result: ok. 19 passed; 0 failed; 0 skipped; finished in 11.02ms (9.34ms CPU time)
 Ran 10 tests for test/ACDFSigned.t.sol:ACDFSignedTest
-Suite result: ok. 10 passed; 0 failed; 0 skipped; finished in 9.31ms (8.11ms CPU time)
-Ran 23 tests for test/ACDFComposition.t.sol:ACDFCompositionTest
-Suite result: ok. 23 passed; 0 failed; 0 skipped; finished in 18.19ms (17.01ms CPU time)
+Suite result: ok. 10 passed; 0 failed; 0 skipped; finished in 9.54ms (8.34ms CPU time)
+Ran 28 tests for test/ACDFComposition.t.sol:ACDFCompositionTest
+Suite result: ok. 28 passed; 0 failed; 0 skipped; finished in 17.17ms (16.11ms CPU time)
 Ran 5 tests for test/ACDFVectors.t.sol:ACDFVectorsTest
-Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 343.71ms (441.01ms CPU time)
-Ran 8 test suites in 381.53ms (420.51ms CPU time): 129 tests passed, 0 failed, 0 skipped (129 total tests)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 354.52ms (434.12ms CPU time)
+Ran 8 test suites in 391.74ms (425.57ms CPU time): 135 tests passed, 0 failed, 0 skipped (135 total tests)
 ```
 
 The same result was reproduced from a fresh clone of github.com/garyyang-finchip/acd-framework after `forge install foundry-rs/forge-std`.
@@ -54,11 +54,12 @@ The same result was reproduced from a fresh clone of github.com/garyyang-finchip
 
 ## Test list
 
-### ACDFAdapter8414.t.sol (16)
+### ACDFAdapter8414.t.sol (17)
 
 - test_NoDecision_triggers_nothing_and_the_task_clock_governs
 - test_accept_path_pays_the_worker_through_the_real_kernel
 - test_adapter_constructor_validates_inputs
+- test_default_claim_before_execute_pays_once_but_enactment_is_failed (contributed by ted0x, Magicians #9)
 - test_execute_unknown_issue_reverts
 - test_execute_unknown_issue_reverts_and_adapter_is_a_judged_authority
 - test_execution_failure_is_recorded_without_touching_the_decision_and_can_be_retried
@@ -109,7 +110,7 @@ The same result was reproduced from a fresh clone of github.com/garyyang-finchip
 - test_caseB_variant1_elders_veto_inside_the_window
 - test_caseB_variant2_econ_quorum_not_met_is_NoDecision_not_rejection
 
-### ACDFComposition.t.sol (23)
+### ACDFComposition.t.sol (28)
 
 - test_ALL_any_no_decides_no_without_waiting
 - test_ALL_both_yes_is_yes_and_decided_at_the_later_chamber
@@ -126,13 +127,18 @@ The same result was reproduced from a fresh clone of github.com/garyyang-finchip
 - test_VETO_result_type_does_not_depend_on_settlement_order
 - test_backward_or_self_edge_rejected_as_cycle
 - test_body_kind_acceptance_mismatch_rejected
+- test_body_referenced_by_two_leaves_rejected
 - test_duplicate_child_rejected
 - test_empty_graph_bad_body_index_and_bad_k_rejected
 - test_max_total_duration_must_cover_rounds_and_appeals
+- test_one_veto_body_guarding_two_targets_accepted
 - test_submitter_body_report_is_accepted_only_from_the_pinned_submitter
 - test_submitter_may_report_NoDecision_explicitly
 - test_submitter_silence_is_NoDecision_SUBMITTER_SILENT_and_late_report_rejected
 - test_unreferenced_node_and_doubly_referenced_node_rejected
+- test_unused_body_rejected
+- test_veto_body_voting_inside_guarded_subtree_rejected
+- test_veto_body_voting_outside_guarded_subtree_rejected
 - test_veto_target_must_be_a_later_node_and_veto_body_must_exist
 
 ### ACDFMinimal.t.sol (26)
