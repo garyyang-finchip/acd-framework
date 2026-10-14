@@ -146,3 +146,42 @@ margin 1800 s; task judgment window 2 days; settleBy 0; reward 0.001 ETH, one co
   appealMode REQUIRE_FRESH_DECISION, descriptorHash = keccak256 of
   `deployments/case-a2/policy-descriptor.json`; ballots jurors 1-3 Yes in round 1, none in round 2;
   the appeal is filed by the deployer account (standing ANYONE).
+
+## Revision 3: body-role registries, Case B (composition, veto, on-chain ballots) and Case C (reject)
+
+`script/SepoliaCaseBC.s.sol` redeploys the registries (the policy registry now enforces the body-role
+rules of Section 3) and runs two more cases against the same live `TaskToken`, with the same accounts
+and the same flags. State lives in `deployments/sepolia-r3.json`; the revision-2 contracts and record
+stay as they are.
+
+| Run | Proves |
+|---|---|
+| DeployCoreR3 | registries with body-role validation (a dead tree — the veto body voting as a leaf — is offered locally and refused with `ACDF: veto body votes`); policy B = `VETO(screening) -> ALL(technical chamber, economic chamber)`, screening 1-of-2 signed ballots with a 15-minute window under `REQUIRE_CLEARANCE`, chambers 2-of-3 on-chain ballots; policy C = 3-of-5 signed ballots; one adapter per policy; gas money for the worker and the four jurors who transact |
+| MintTasksR3 | tasks B and C with their adapters as `acceptanceAuthority`, escrows funded |
+| OpenCasesR3 | worker submits on both; both cases opened; screening clears explicitly (two signed No ballots); jurors 1 and 2 cast on-chain `castBallot(issue, round, body 1, Yes)`, jurors 4 and 5 for body 2; `settleRound` -> Provisional(Yes) before the veto window closed (explicit clearance lets the target pass early); C: three signed No ballots, `settleRound` -> Provisional(No) |
+| FinalizeR3 | B: `finalize` -> Final x Decided(Yes), `execute` -> `acceptFulfillment` pays; C: `finalize` -> Final x Decided(No), `execute` -> `rejectFulfillment`: submission Rejected, `Enacted` under `task-tender.rejectFulfillment`, `pendingOf` 0 (slot released), escrow unchanged, nothing credited to the worker |
+
+```bash
+forge script script/SepoliaCaseBC.s.sol:DeployCoreR3 --rpc-url $SEPOLIA_RPC_URL --broadcast --skip-simulation --gas-estimate-multiplier 150 -vv
+forge script script/SepoliaCaseBC.s.sol:MintTasksR3  --rpc-url $SEPOLIA_RPC_URL --broadcast --skip-simulation --gas-estimate-multiplier 150 -vv
+forge script script/SepoliaCaseBC.s.sol:OpenCasesR3  --rpc-url $SEPOLIA_RPC_URL --broadcast --skip-simulation --gas-estimate-multiplier 150 -vv
+# wait for both appealOpenUntil instants printed by OpenCasesR3 (about ten minutes), plus a minute
+forge script script/SepoliaCaseBC.s.sol:FinalizeR3   --rpc-url $SEPOLIA_RPC_URL --broadcast --skip-simulation --gas-estimate-multiplier 150 -vv
+```
+
+Budget: the deployer needs about 0.015 ETH at the repriced fee level of October 2026 (0.002 ETH of
+escrows, 0.003 ETH to the worker, 4 x 0.002 ETH to the jurors, the rest gas); at 1 gwei the four
+contract creations alone would need roughly 0.05 ETH — check `cast basefee` before run 1 and top up
+from a faucet if the base fee has gone back up. Rehearsed twice end to end on a local Anvil chain
+against the vendored kernel, with the clock advanced between runs 3 and 4.
+
+Parameters of the cases: common appeals (maxAppeals 1, appealWindow 600 s, appealable = Decided,
+standing ANYONE, PRESERVE_UNLESS_OVERTURNED), adapter margin 1800 s, task judgment window 2 days,
+settleBy 0, reward 0.001 ETH, one completion. Case B: family `keccak256("acdf.sepolia.case-b")`,
+bodies screening = jurors 4-5 (k 1, 900 s, SIGNED_BALLOTS), technical = jurors 1-3 (k 2, 3600 s,
+ON_CHAIN_TALLY), economic = jurors 3-5 (k 2, 3600 s, ON_CHAIN_TALLY); nodes VETO(0 -> 1,
+REQUIRE_CLEARANCE), ALL(2, 3), BODY(1), BODY(2); maxTotalDuration 10800 s; descriptor
+`deployments/case-b/policy-descriptor.json`. Case C: family `keccak256("acdf.sepolia.case-c")`, the
+Case A body (jurors 1-5, k 3, 3600 s, SIGNED_BALLOTS), ballots jurors 1-3 No; descriptor
+`deployments/case-c/policy-descriptor.json`; the submitted result deliberately answers a different
+question (`deployments/case-c/result.json`).

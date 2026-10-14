@@ -1,0 +1,17 @@
+{
+  "schema": "acdf.policy-descriptor.v1",
+  "family": "acdf.sepolia.case-b",
+  "version": 1,
+  "purpose": "Composed acceptance of ERC-8414 task-tender submissions on Sepolia (ACDF reference deployment, Case B): a screening veto over two chambers that vote on chain",
+  "bodies": [
+    { "index": 0, "name": "screening", "kind": "ROSTER_KOFN", "acceptance": "SIGNED_BALLOTS", "roster": "jurors 4 and 5 of the PolicySpec", "k": 1, "windowSeconds": 900, "note": "an approve ballot is a veto; two blocks are explicit clearance" },
+    { "index": 1, "name": "technical chamber", "kind": "ROSTER_KOFN", "acceptance": "ON_CHAIN_TALLY", "roster": "jurors 1, 2 and 3", "k": 2, "windowSeconds": 3600 },
+    { "index": 2, "name": "economic chamber", "kind": "ROSTER_KOFN", "acceptance": "ON_CHAIN_TALLY", "roster": "jurors 3, 4 and 5", "k": 2, "windowSeconds": 3600 }
+  ],
+  "composition": "node 0 VETO(vetoBody 0, silence REQUIRE_CLEARANCE, target node 1); node 1 ALL(node 2, node 3); node 2 BODY(1); node 3 BODY(2)",
+  "appeals": { "maxAppeals": 1, "appealWindowSeconds": 600, "appealable": "Decided results", "standing": "ANYONE", "appealMode": "PRESERVE_UNLESS_OVERTURNED" },
+  "maxTotalDurationSeconds": 10800,
+  "ackWindowSeconds": 0,
+  "allowAdvisory": false,
+  "note": "The hash of this file is the descriptorHash inside the PolicySpec. The file is informative; the PolicySpec is normative."
+}

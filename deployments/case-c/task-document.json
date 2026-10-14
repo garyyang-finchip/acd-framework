@@ -1,0 +1,8 @@
+{
+  "schema": "acdf.case-c.task-document.v1",
+  "title": "ACDF Case C: judged rejection of a task-tender submission",
+  "task": "Deliver a one-page summary of the Agent Collective Decision Framework that states the three result dimensions (procedure state, outcome type, enactment status) and the minimal conformance profile. A submission that answers a different question, or omits any of the four items, is to be rejected.",
+  "acceptance": "A 3-of-5 roster of jurors votes under ACDF policy family acdf.sepolia.case-c, version 1 (signed ballots). The adapter contract is the task's acceptance authority: a Final Yes calls acceptFulfillment, a Final No calls rejectFulfillment and releases the reserved slot without payment, a Final NoDecision triggers nothing (the tender's own judgment clock governs).",
+  "reward": "0.001 ETH per accepted completion, one completion",
+  "network": "sepolia"
+}

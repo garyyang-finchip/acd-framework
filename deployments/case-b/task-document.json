@@ -1,0 +1,8 @@
+{
+  "schema": "acdf.case-b.task-document.v1",
+  "title": "ACDF Case B: composed acceptance of a task-tender submission (screening veto over two chambers)",
+  "task": "Deliver a one-page note explaining how ERC-8436 composes several deliberating bodies: the four-valued node semantics (Pending, Yes, No, NoDecision), the ALL / ANY / K-of-M combinators, the VETO node with its window and explicit clearance, and why ballots of different bodies are never pooled.",
+  "acceptance": "ACDF policy family acdf.sepolia.case-b, version 1: VETO(screening body) over ALL(technical chamber, economic chamber). The screening body (two jurors, 1-of-2, signed ballots) may veto within its window or clear explicitly; each chamber (three jurors, 2-of-3) votes with on-chain ballots. The adapter contract is the task's acceptance authority: a Final Yes calls acceptFulfillment, a Final No calls rejectFulfillment, a Final NoDecision triggers nothing (the tender's own judgment clock governs).",
+  "reward": "0.001 ETH per accepted completion, one completion",
+  "network": "sepolia"
+}

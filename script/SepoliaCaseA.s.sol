@@ -120,7 +120,7 @@ abstract contract CaseBase is Script {
         return keccak256(bytes(vm.readFile(path)));
     }
 
-    function stateFile() internal view returns (string memory) {
+    function stateFile() internal view virtual returns (string memory) {
         if (block.chainid == 11155111) return "deployments/sepolia.json";
         return string(abi.encodePacked("deployments/local-", vm.toString(block.chainid), ".json"));
     }

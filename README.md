@@ -27,9 +27,10 @@ assets/erc-acdf/vectors/      policy-id, ballot-digest (ethers v6 ↔ solc), kof
 test/                         Foundry suites; test/fixtures/task-token/ = vendored real ERC-8414 kernel (commit 306a8f40)
 tools/vectors.js              regenerates the vectors
 scripts/make-filing-package.py  builds and lints the ethereum/ERCs submission package (ERCS/erc-N.md + assets/erc-N/)
-script/SepoliaCaseA.s.sol     Foundry scripts: Sepolia deployment and Case A against the live ERC-8414 TaskToken
+script/SepoliaCaseA.s.sol     Foundry scripts: Sepolia deployment (revision 2), Case A and Case A2 against the live ERC-8414 TaskToken
+script/SepoliaCaseBC.s.sol    Foundry scripts: revision 3 (body-role registries), Case B (composition, veto, on-chain ballots) and Case C (reject)
 docs/sepolia-runbook.md       how to run them; what each run proves
-deployments/                  sepolia.json (script state), sepolia-cases.json (evidence record), sepolia-first-attempt*.json, case-a/, case-a2/ (hashed documents and policy descriptors), archive/ (v0.2 record)
+deployments/                  sepolia.json / sepolia-r3.json (script state), sepolia-cases.json (evidence record), sepolia-first-attempt*.json, case-a/ .. case-c/ (hashed documents and policy descriptors), archive/ (v0.2 record)
 ```
 
 ## Build and test
@@ -54,7 +55,7 @@ npm install && node tools/vectors.js # optional: regenerate vectors
 | `ACDFTaskTenderAdapter` (policy A, PRESERVE_UNLESS_OVERTURNED) | `0x09c3550cCAfc2E73B1f0edA3ECA2f5247bB24Da7` | 5,870 B |
 | `ACDFTaskTenderAdapter` (policy A2, REQUIRE_FRESH_DECISION) | `0x078271c288141660753b1BfB67A3cfc2F06c8AC2` | 5,870 B |
 
-All four match the bytecode built from `assets/erc-acdf/contracts` outside their immutable slots. Policy ids `0xb231869b...0401` (A) and `0x3e431bbb...d063` (A2), family authority = deployer. The deployed `ACDFPolicyRegistry` predates the body-role validation added after the second Magicians review (a body as two `BODY` leaves, a voting veto body, an idle body — now rejected at registration); both registered policies have a single body and are unaffected, and the registry will be redeployed with the next batch of changes.
+All four match the bytecode built from `assets/erc-acdf/contracts` outside their immutable slots. Policy ids `0xb231869b...0401` (A) and `0x3e431bbb...d063` (A2), family authority = deployer. The deployed `ACDFPolicyRegistry` predates the body-role validation added after the second Magicians review (a body as two `BODY` leaves, a voting veto body, an idle body — now rejected at registration); both registered policies have a single body and are unaffected. Revision 3 (`script/SepoliaCaseBC.s.sol`, record `deployments/sepolia-r3.json` once run) redeploys the registries with the validation and adds Case B (screening veto over two chambers that vote on chain, explicit clearance, `acceptFulfillment`) and Case C (3-of-5 rejects, `rejectFulfillment` releases the slot without payment).
 
 - **Case A** (task #13, issue `0xf2e88a4e...1dc8`): one dissent and three signed approvals, settle, appeal window passes, `finalize` -> Final x Decided(Yes), `adoptedFromEarlierRound = false`; `execute` -> `acceptFulfillment(13, 1)` pays the worker 0.001 ETH.
 - **Case A2** (task #14, issue `0x2ff1ec2f...4cdc`): three approvals, settle -> Provisional(Yes), `appeal` -> round 2, no ballots, round 2 settles NoDecision(QUORUM_NOT_MET) -> Final x NoDecision (`roundCount 2`, `sourceRound 2`); the round-1 Yes is vacated under REQUIRE_FRESH_DECISION, the adapter refuses `execute`, the submission stays Pending and the tender's own `claimUnjudged` governs.
