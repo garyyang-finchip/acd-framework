@@ -1,8 +1,8 @@
 {
   "network": "sepolia",
   "chainId": 11155111,
-  "title": "ERC-8436 ACDF reference implementation, revision 2: deployment, Case A and Case A2 against the live ERC-8414 TaskToken",
-  "recordedAt": "2026-10-09",
+  "title": "ERC-8436 ACDF reference implementation on Sepolia: revision 2 (Case A, Case A2) and revision 3 (Case B, Case C) against the live ERC-8414 TaskToken",
+  "recordedAt": "2026-10-15",
   "stateFile": "deployments/sepolia.json (written by script/SepoliaCaseA.s.sol; machine-readable, flat)",
   "runbook": "docs/sepolia-runbook.md",
   "contracts": {
@@ -40,7 +40,7 @@
     "method": "eth_getCode of each contract, with every immutable slot (positions from the compiler's immutableReferences) zeroed, hashed with SHA-256 and compared with the deployedBytecode of a fresh build of assets/erc-acdf/contracts (forge 1.5.1, solc 0.8.24, via-IR, optimizer runs 1)",
     "result": "all four contracts match the current assets byte for byte outside the immutable slots; sizes 9,765 / 24,212 / 5,870 / 5,870 bytes",
     "firstAttemptAdapters": "built from the 2026-10-05 source (before the editor-review rename of the kernel interface and labels); they differ from the current adapter bytecode and are superseded",
-    "laterChanges": "2026-10-13: ACDFPolicyRegistry gained three validation rules (ACDF: body reused / veto body votes / body unused, 10,201 B). The deployed registry predates them; policies A and A2 have one body each and are unaffected. Redeploy with the next batch."
+    "laterChanges": "2026-10-13: ACDFPolicyRegistry gained three validation rules (ACDF: body reused / veto body votes / body unused, 10,201 B). The revision-2 registry predates them (policies A and A2 have one body each and are unaffected); revision 3 below deployed the validating registries."
   },
   "accounts": {
     "deployer": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
@@ -718,5 +718,523 @@
         }
       ]
     }
-  ]
+  ],
+  "revision3": {
+    "title": "Revision 3 (2026-10-15): registries with body-role validation; Case B (composition, veto, on-chain ballots) and Case C (reject path)",
+    "stateFile": "deployments/sepolia-r3.json (written by script/SepoliaCaseBC.s.sol)",
+    "contracts": {
+      "ACDFPolicyRegistry": {
+        "address": "0x7eAfCC452EC0A60a358a26B6e73f28413C4abeF0",
+        "runtimeBytes": 10201,
+        "deployedIn": "0x70449671b7ed32e4df9f5f78af5afd7c8773ca19fde4ae9beeabb5cdac58d76d",
+        "block": 11915739
+      },
+      "ACDFRegistry": {
+        "address": "0x3bE57E74f2E7c280073b6B16A1Db3F562758dB01",
+        "runtimeBytes": 24212,
+        "deployedIn": "0xa110efebc1c5ddbaec607b80c81b11dc9c50e6b65f6ca3d6be9ca9e334640748",
+        "block": 11915740
+      },
+      "ACDFTaskTenderAdapter (policy B)": {
+        "address": "0x19B8E0290456fCd771169D6AEdc9e1D771Da426f",
+        "runtimeBytes": 5870,
+        "deployedIn": "0xb0e00c11cb57c7c22b5af44278a6ff7c15db3188533f996a5e909c3610baa470",
+        "block": 11915743,
+        "policyId": "0x310590adfa0e0897091f2b5d82774c9db4cee25ffe5e7a6c954897ad8cf7e26a"
+      },
+      "ACDFTaskTenderAdapter (policy C)": {
+        "address": "0x0Ef78bddBcf96919B27df84c091a34DfDF4D820b",
+        "runtimeBytes": 5870,
+        "deployedIn": "0x3c9cf40e464c822e2f85da144eb13ee210bb57f09d091499567fafbb78ca13d5",
+        "block": 11915744,
+        "policyId": "0x969eac69b5ac8b993ff29cfdbdf17edd5146b5b0dfe7c858e09f4ea4b46a6a1c"
+      },
+      "TaskToken (ERC-8414 reference, pre-existing)": {
+        "address": "0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7"
+      }
+    },
+    "runtimeVerification": {
+      "method": "as for revision 2: eth_getCode with immutable slots zeroed, SHA-256, compared with a fresh build of the assets",
+      "result": "all four contracts match the current assets byte for byte outside the immutable slots (10,201 / 24,212 / 5,870 / 5,870 bytes)"
+    },
+    "bodyRoleValidationOnChain": {
+      "probe": "eth_call registerPolicy(dead tree) \u2014 Revinand's second tree, the veto body also a BODY leaf under the VETO it guards (family acdf.sepolia.dead-tree, descriptorHash keccak256(\"dead tree\"), rehearsal juror addresses)",
+      "revision3PolicyRegistry": "0x7eAfCC452EC0A60a358a26B6e73f28413C4abeF0 -> execution reverted: ACDF: veto body votes",
+      "revision2PolicyRegistry": "0x7e870B29C903e71517676d52FCCD20Ef96477A73 -> would accept it (eth_call returns policyId 0x26f68c0b6b697c73f5599e2b403fa1a10744773a3453f8744c62f7233615daca); nothing was sent"
+    },
+    "accounts": {
+      "deployer": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+      "policyAuthority": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+      "worker": "0x0218eeA626c95048416719460dC5Dd6D9eCc2906",
+      "jurors": [
+        "0xED0A3cC863cbf87aa9c8DCdB066b77E75e458D95",
+        "0x586F05f57E0161310A8d305e640f1A6bfE95E42b",
+        "0x4D0EA70a47a282AA665989ea61D6fAf58A9E2547",
+        "0xd24972e5909456e60815048735EfE6141f42B325",
+        "0xB108C913e2a94C0c6CAF21D83907aF8EBb1108D1"
+      ],
+      "note": "jurors 1, 2, 4, 5 transact in Case B (on-chain ballots) and received 0.002 ETH each; juror 3 sits in both chambers and did not vote"
+    },
+    "policies": {
+      "B": {
+        "policyId": "0x310590adfa0e0897091f2b5d82774c9db4cee25ffe5e7a6c954897ad8cf7e26a",
+        "family": "keccak256(\"acdf.sepolia.case-b\")",
+        "appealMode": "PRESERVE_UNLESS_OVERTURNED",
+        "bodies": [
+          "0 screening: jurors 4, 5; k 1; 900 s; SIGNED_BALLOTS (approve = veto, two blocks = explicit clearance)",
+          "1 technical chamber: jurors 1, 2, 3; k 2; 3600 s; ON_CHAIN_TALLY",
+          "2 economic chamber: jurors 3, 4, 5; k 2; 3600 s; ON_CHAIN_TALLY"
+        ],
+        "nodes": [
+          "0 VETO(vetoBody 0, silence REQUIRE_CLEARANCE, target 1)",
+          "1 ALL(2, 3)",
+          "2 BODY(1)",
+          "3 BODY(2)"
+        ],
+        "maxAppeals": 1,
+        "appealWindow": 600,
+        "maxTotalDuration": 10800,
+        "appealStanding": "ANYONE",
+        "descriptorHash": "0x19ce20ccbcb29bd4365c391b833c3d6db329027130faf9166cb2458223d7016c",
+        "descriptor": "deployments/case-b/policy-descriptor.json",
+        "registeredIn": "0xe2e3cf025a5803b51a8c6c4f0b2f3e869702e8478a073e1c4b4fa2de4e409f34"
+      },
+      "C": {
+        "policyId": "0x969eac69b5ac8b993ff29cfdbdf17edd5146b5b0dfe7c858e09f4ea4b46a6a1c",
+        "family": "keccak256(\"acdf.sepolia.case-c\")",
+        "appealMode": "PRESERVE_UNLESS_OVERTURNED",
+        "bodies": [
+          "0: jurors 1-5; k 3; 3600 s; SIGNED_BALLOTS"
+        ],
+        "nodes": [
+          "0 BODY(0)"
+        ],
+        "maxAppeals": 1,
+        "appealWindow": 600,
+        "maxTotalDuration": 10800,
+        "appealStanding": "ANYONE",
+        "descriptorHash": "0xe512c4418966e5fb20ee76719f5c2b628a4f27bd901957e30168ea30114b4d6d",
+        "descriptor": "deployments/case-c/policy-descriptor.json",
+        "registeredIn": "0xa68344249d6888ade1927ad5b64282e2dc81b47994775b1f6d0767db2dd0d61c"
+      }
+    },
+    "cases": {
+      "B": {
+        "title": "Case B: screening veto cleared explicitly, both chambers approve on chain, acceptFulfillment pays",
+        "subject": {
+          "taskToken": "0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7",
+          "tokenId": 15,
+          "submissionId": 1,
+          "tdHash": "0xeefab4b937b26a029132694a2e91e5d7e95df36736ea8122734fe370f985dab7",
+          "taskHash": "0x8b7e385133747290eba388902b6a6912c0f4f97d51651d3d584f9db97b3f2d2c",
+          "resultHash": "0x8d748b665daf21efbba25df604103e751dbaadd00206ddcf1527353b0e84228a",
+          "documents": "deployments/case-b/ (tdHash = keccak256(task-document.json), taskHash = keccak256(\"acdf.case-b.task.v1\" || tdHash), resultHash = keccak256(result.json))"
+        },
+        "issueId": "0x8e06e8402e41e9f7ad4790a805ee1ec88c906c5fa4202767e45a0e1e03b77524",
+        "consumer": "0x19B8E0290456fCd771169D6AEdc9e1D771Da426f",
+        "mode": "CONSUMER_FILED, Binding",
+        "obligationId": "0xf46a5cdeb00d33b3a85fbec18cc27f795fa31daa87fd39171b8d7bc31429f1b1 = keccak256(abi.encode(taskToken, 15, 1))",
+        "ballots": "screening: jurors 4, 5 No (signed, one batch); technical: jurors 1, 2 Yes (castBallot); economic: jurors 4, 5 Yes (castBallot); juror 3 silent in both chambers",
+        "roundOnChain": {
+          "readVia": "getRound(issue, 1)",
+          "startedAt": 1792012728,
+          "deadline": 1792016328,
+          "status": "Yes",
+          "at": 1792012800,
+          "appealOpenUntil": 1792013400,
+          "vetoWindowClose": 1792013628,
+          "note": "the root formed Yes 828 s before the veto window closed: explicit clearance by the veto body lets the target pass early; the VETO node was never Pending on the target's account"
+        },
+        "resultOnChain": {
+          "readVia": "getResult(bytes32) at 0x3bE57E74f2E7c280073b6B16A1Db3F562758dB01",
+          "state": "Final (4)",
+          "outcomeType": "Decided (1)",
+          "outcomeYes": true,
+          "reason": "NONE (0)",
+          "decidedAt": 1792012800,
+          "finalAt": 1792013568,
+          "roundCount": 1,
+          "sourceRound": 1,
+          "adoptedFromEarlierRound": false
+        },
+        "kernelOnChain": {
+          "readVia": "submissionOf(15, 1)",
+          "status": "Accepted",
+          "fulfiller": "0x0218eeA626c95048416719460dC5Dd6D9eCc2906",
+          "submittedAt": 1792012704,
+          "paid": "0.001 ETH to the worker in the execute transaction"
+        },
+        "assertionsChecked": "Final x Decided(Yes), adoptedFromEarlierRound = false, Enacted under task-tender.acceptFulfillment, submission Accepted, worker balance + reward; root Yes before the veto window closed (script OpenCasesR3 / FinalizeR3)"
+      },
+      "C": {
+        "title": "Case C: three signed No ballots, Final x Decided(No), rejectFulfillment releases the slot without payment",
+        "subject": {
+          "taskToken": "0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7",
+          "tokenId": 16,
+          "submissionId": 1,
+          "tdHash": "0x284201be4341efc55e027c693e8de2af3d2a8339e446141aaf0e4fe373088fe6",
+          "taskHash": "0xf6a29a8fdf71e35b02d43c8b3a0336a5f1b23ab5dd9bed96cb37cebc121cb730",
+          "resultHash": "0x944b8fed47dc4e08acee2b9e27bcb1f0e5e7349741b3d1c4f3237d9dd733f7be",
+          "documents": "deployments/case-c/ (same derivation with the label \"acdf.case-c.task.v1\"); the submitted result deliberately answers a different question"
+        },
+        "issueId": "0x79552e1dd5f59952747e14d53f6fd5077a201f4201d188ee8aaa51d42406d554",
+        "consumer": "0x0Ef78bddBcf96919B27df84c091a34DfDF4D820b",
+        "mode": "CONSUMER_FILED, Binding",
+        "obligationId": "0xbbc338b2d29df2e01f662b47bc17341bb56e4bec6e1451c0cc81499b96d65aaa = keccak256(abi.encode(taskToken, 16, 1))",
+        "ballots": "jurors 1, 2, 3 No (signed, one batch): three blocks = n - k + 1, so the body decides No",
+        "resultOnChain": {
+          "readVia": "getResult(bytes32) at 0x3bE57E74f2E7c280073b6B16A1Db3F562758dB01",
+          "state": "Final (4)",
+          "outcomeType": "Decided (1)",
+          "outcomeYes": false,
+          "reason": "NONE (0)",
+          "decidedAt": 1792012824,
+          "finalAt": 1792013592,
+          "roundCount": 1,
+          "sourceRound": 1,
+          "adoptedFromEarlierRound": false
+        },
+        "kernelOnChain": {
+          "readVia": "submissionOf(16, 1), pendingOf(16), escrowBalanceOf(16)",
+          "status": "Rejected (2)",
+          "fulfiller": "0x0218eeA626c95048416719460dC5Dd6D9eCc2906",
+          "submittedAt": 1792012716,
+          "pendingOf": 0,
+          "escrowBalanceOf": "0.001 ETH (unchanged)",
+          "creditedToWorker": 0,
+          "note": "the reserved slot and reward are released back to the task; K-of-N No is the approval rule failing, which the adapter maps to rejectFulfillment by the consumer's own commitment (effectNo)"
+        },
+        "assertionsChecked": "Final x Decided(No), Enacted under task-tender.rejectFulfillment, submission Rejected, pendingOf 0, escrow untouched, nothing credited (script FinalizeR3)"
+      }
+    },
+    "gas": {
+      "observed": "base fee 19-170 wei during the runs; ACDFPolicyRegistry creation 15,982,462 gas, ACDFRegistry 37,649,252, adapter 9,301,889, castBallot 275,850-276,055 for the first ballot of a body and 178,471-178,676 for the second, open 2,838,405 / 2,740,485; a plain transfer to an empty account 204,600 (to a funded account 21,000)",
+      "balances": "after the run the deployer holds 0.0310 ETH and the worker 0.0144 ETH"
+    },
+    "runs": [
+      {
+        "run": "DeployCoreR3",
+        "broadcast": "run-1792010916937.json",
+        "day": "2026-10-15 (UTC)",
+        "transactions": [
+          {
+            "function": "CREATE ACDFPolicyRegistry (body-role validation)",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0x7eAfCC452EC0A60a358a26B6e73f28413C4abeF0",
+            "hash": "0x70449671b7ed32e4df9f5f78af5afd7c8773ca19fde4ae9beeabb5cdac58d76d",
+            "block": 11915739,
+            "gasUsed": 15982462,
+            "timestamp": 1792010796,
+            "time": "2026-10-14T20:46:36Z"
+          },
+          {
+            "function": "CREATE ACDFRegistry",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0x3bE57E74f2E7c280073b6B16A1Db3F562758dB01",
+            "hash": "0xa110efebc1c5ddbaec607b80c81b11dc9c50e6b65f6ca3d6be9ca9e334640748",
+            "block": 11915740,
+            "gasUsed": 37649252,
+            "timestamp": 1792010808,
+            "time": "2026-10-14T20:46:48Z"
+          },
+          {
+            "function": "registerPolicy (Case B: VETO(screening) over ALL(technical, economic))",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0x7eAfCC452EC0A60a358a26B6e73f28413C4abeF0",
+            "hash": "0xe2e3cf025a5803b51a8c6c4f0b2f3e869702e8478a073e1c4b4fa2de4e409f34",
+            "block": 11915741,
+            "gasUsed": 3751682,
+            "note": "PolicyRegistered(policyId 0x310590adfa0e0897091f2b5d82774c9db4cee25ffe5e7a6c954897ad8cf7e26a, family keccak256(\"acdf.sepolia.case-b\") = 0x8a471381...1a03, authority 0x2cF07458835437ce44C06f92BbfD30CCd3794dCF)"
+          },
+          {
+            "function": "registerPolicy (Case C: 3-of-5 signed ballots)",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0x7eAfCC452EC0A60a358a26B6e73f28413C4abeF0",
+            "hash": "0xa68344249d6888ade1927ad5b64282e2dc81b47994775b1f6d0767db2dd0d61c",
+            "block": 11915742,
+            "gasUsed": 2269607,
+            "note": "PolicyRegistered(policyId 0x969eac69b5ac8b993ff29cfdbdf17edd5146b5b0dfe7c858e09f4ea4b46a6a1c, family keccak256(\"acdf.sepolia.case-c\") = 0x5733a6ac...20dd)"
+          },
+          {
+            "function": "CREATE ACDFTaskTenderAdapter (policy B)",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0x19B8E0290456fCd771169D6AEdc9e1D771Da426f",
+            "hash": "0xb0e00c11cb57c7c22b5af44278a6ff7c15db3188533f996a5e909c3610baa470",
+            "block": 11915743,
+            "gasUsed": 9301889
+          },
+          {
+            "function": "CREATE ACDFTaskTenderAdapter (policy C)",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0x0Ef78bddBcf96919B27df84c091a34DfDF4D820b",
+            "hash": "0x3c9cf40e464c822e2f85da144eb13ee210bb57f09d091499567fafbb78ca13d5",
+            "block": 11915744,
+            "gasUsed": 9301889
+          },
+          {
+            "function": "transfer 0.003 ETH gas money to the worker",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0x0218eeA626c95048416719460dC5Dd6D9eCc2906",
+            "hash": "0x99c5ac6021c1fa8bb9b5e1619dd68ef307a1c1b8e3cd0e02984055ce1d2fe9bc",
+            "block": 11915745,
+            "gasUsed": 21000
+          },
+          {
+            "function": "transfer 0.002 ETH gas money to juror 1",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0xED0A3cC863cbf87aa9c8DCdB066b77E75e458D95",
+            "hash": "0x512ae2bd54f137d965e3c46b6dc4d0c97b53c4972f2d6ad6204df0da62dbd43a",
+            "block": 11915746,
+            "gasUsed": 204600
+          },
+          {
+            "function": "transfer 0.002 ETH gas money to juror 2",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0x586F05f57E0161310A8d305e640f1A6bfE95E42b",
+            "hash": "0x621f82097fa5e7eea49d333168fbc660c9e2bbea550ed8a5476d10ca30342f36",
+            "block": 11915747,
+            "gasUsed": 204600
+          },
+          {
+            "function": "transfer 0.002 ETH gas money to juror 4",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0xd24972e5909456e60815048735EfE6141f42B325",
+            "hash": "0xd45b91716c4815aa2a7779df06a721b74ffe43d15a2607414f38b68c83ce089c",
+            "block": 11915748,
+            "gasUsed": 204600
+          },
+          {
+            "function": "transfer 0.002 ETH gas money to juror 5",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0xB108C913e2a94C0c6CAF21D83907aF8EBb1108D1",
+            "hash": "0x11b9a94d1bea4a842746fe76a4f9522a68a13a19a55b14d71b642ea09378fb58",
+            "block": 11915749,
+            "gasUsed": 204600,
+            "timestamp": 1792010916,
+            "time": "2026-10-14T20:48:36Z"
+          }
+        ]
+      },
+      {
+        "run": "MintTasksR3",
+        "broadcast": "run-1792011385663.json",
+        "day": "2026-10-15 (UTC)",
+        "transactions": [
+          {
+            "function": "mintTask -> token 15 (acceptanceAuthority = adapter B)",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7",
+            "hash": "0x5181c0babe11b684f25ef69851ac2d5715d25694ad81e9b86b0d05f87c42a9e1",
+            "block": 11915785,
+            "gasUsed": 3752460,
+            "timestamp": 1792011348,
+            "time": "2026-10-14T20:55:48Z"
+          },
+          {
+            "function": "fundTask(15, 1) 0.001 ETH",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7",
+            "hash": "0xe149a06c2940feb8385effc4bf12e7992e07ee4074326b1e74adf71e7ea754c2",
+            "block": 11915786,
+            "gasUsed": 381329
+          },
+          {
+            "function": "mintTask -> token 16 (acceptanceAuthority = adapter C)",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7",
+            "hash": "0x4a06965ed6356c719ce1e1a5f1c83922f429edd602f306c69badade8bfea04c6",
+            "block": 11915787,
+            "gasUsed": 3752460
+          },
+          {
+            "function": "fundTask(16, 1) 0.001 ETH",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7",
+            "hash": "0xc02401c9d2e1c813ec11f4df77b1997b27f04575b3995e2842cfc0572e815408",
+            "block": 11915788,
+            "gasUsed": 381329,
+            "timestamp": 1792011384,
+            "time": "2026-10-14T20:56:24Z"
+          }
+        ]
+      },
+      {
+        "run": "OpenCasesR3",
+        "broadcast": "run-1792012837783.json",
+        "day": "2026-10-15 (UTC)",
+        "transactions": [
+          {
+            "function": "submitFulfillment(15, resultHash B)",
+            "from": "0x0218eeA626c95048416719460dC5Dd6D9eCc2906",
+            "to": "0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7",
+            "hash": "0x4ac64c1593525c872824524e330f29670938a45666dd561a572e68e58be77d9b",
+            "block": 11915898,
+            "gasUsed": 605438,
+            "timestamp": 1792012704,
+            "time": "2026-10-14T21:18:24Z"
+          },
+          {
+            "function": "submitFulfillment(16, resultHash C)",
+            "from": "0x0218eeA626c95048416719460dC5Dd6D9eCc2906",
+            "to": "0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7",
+            "hash": "0x68394bf5f5afc83f42723bf7e4432fa1e346fbce434aff27d6f8d5c3a8282fb6",
+            "block": 11915899,
+            "gasUsed": 605438,
+            "timestamp": 1792012716,
+            "time": "2026-10-14T21:18:36Z"
+          },
+          {
+            "function": "adapter B.open(15, 1) -> IssueFiled + IssueAdmitted 0x8e06e8402e41e9f7ad4790a805ee1ec88c906c5fa4202767e45a0e1e03b77524",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0x19B8E0290456fCd771169D6AEdc9e1D771Da426f",
+            "hash": "0x291c8b49ac20b555cb6cc879f1570f3fe3c457dafadfefcd2af420fb1b9ca98f",
+            "block": 11915900,
+            "gasUsed": 2838405,
+            "timestamp": 1792012728,
+            "time": "2026-10-14T21:18:48Z",
+            "note": "round 1 startedAt 1792012728; screening (veto) window closes 1792013628; chamber windows close 1792016328"
+          },
+          {
+            "function": "adapter C.open(16, 1) -> IssueFiled + IssueAdmitted 0x79552e1dd5f59952747e14d53f6fd5077a201f4201d188ee8aaa51d42406d554",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0x0Ef78bddBcf96919B27df84c091a34DfDF4D820b",
+            "hash": "0x74eef078d8624a3026b6401cbb6bda645f0a87bd7126b2152e13d06d24460bd6",
+            "block": 11915901,
+            "gasUsed": 2740485,
+            "timestamp": 1792012740,
+            "time": "2026-10-14T21:19:00Z"
+          },
+          {
+            "function": "submitSignedBallots(issue B, body 0 screening): jurors 4 and 5 No = explicit clearance",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0x3bE57E74f2E7c280073b6B16A1Db3F562758dB01",
+            "hash": "0xd14c198d839de41fbe3a8a1cdb8dfa77be5aa920dc40263856096d5ea2703cdb",
+            "block": 11915902,
+            "gasUsed": 413350,
+            "timestamp": 1792012752,
+            "time": "2026-10-14T21:19:12Z"
+          },
+          {
+            "function": "castBallot(issue B, round 1, body 1 technical, Yes) by juror 1",
+            "from": "0xED0A3cC863cbf87aa9c8DCdB066b77E75e458D95",
+            "to": "0x3bE57E74f2E7c280073b6B16A1Db3F562758dB01",
+            "hash": "0x312b9167f087dcb9be853b3ebb2c3c51a757e471ac7d6018fd5ac3a9e6a32e3e",
+            "block": 11915903,
+            "gasUsed": 275850,
+            "timestamp": 1792012764,
+            "time": "2026-10-14T21:19:24Z"
+          },
+          {
+            "function": "castBallot(issue B, round 1, body 1 technical, Yes) by juror 2 -> technical chamber Yes (2-of-3)",
+            "from": "0x586F05f57E0161310A8d305e640f1A6bfE95E42b",
+            "to": "0x3bE57E74f2E7c280073b6B16A1Db3F562758dB01",
+            "hash": "0x13052e47b9678b16545a5879d24e5ea61c5636e43a96c591c255fb663074d785",
+            "block": 11915904,
+            "gasUsed": 178471,
+            "timestamp": 1792012776,
+            "time": "2026-10-14T21:19:36Z"
+          },
+          {
+            "function": "castBallot(issue B, round 1, body 2 economic, Yes) by juror 4",
+            "from": "0xd24972e5909456e60815048735EfE6141f42B325",
+            "to": "0x3bE57E74f2E7c280073b6B16A1Db3F562758dB01",
+            "hash": "0x358587f18d592db82d7f0650fb3739778280beec57a391d08e4d6e84e840a851",
+            "block": 11915905,
+            "gasUsed": 276055,
+            "timestamp": 1792012788,
+            "time": "2026-10-14T21:19:48Z"
+          },
+          {
+            "function": "castBallot(issue B, round 1, body 2 economic, Yes) by juror 5 -> economic chamber Yes; root Yes formed at 1792012800",
+            "from": "0xB108C913e2a94C0c6CAF21D83907aF8EBb1108D1",
+            "to": "0x3bE57E74f2E7c280073b6B16A1Db3F562758dB01",
+            "hash": "0xee91379807f627ceec5b480c3010c07c9ddce09e2c83954a55c6bbeb977d667c",
+            "block": 11915906,
+            "gasUsed": 178676,
+            "timestamp": 1792012800,
+            "time": "2026-10-14T21:20:00Z"
+          },
+          {
+            "function": "settleRound(issue B) -> RoundSettled(1, Yes); Provisional, 828 s before the veto window closes",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0x3bE57E74f2E7c280073b6B16A1Db3F562758dB01",
+            "hash": "0x2d49ca3665af0c6e7542af952598431837c7fcfa304be75e543a0e83c4a11dbb",
+            "block": 11915907,
+            "gasUsed": 288289,
+            "timestamp": 1792012812,
+            "time": "2026-10-14T21:20:12Z"
+          },
+          {
+            "function": "submitSignedBallots(issue C, body 0): jurors 1, 2, 3 No (3 BallotCast events)",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0x3bE57E74f2E7c280073b6B16A1Db3F562758dB01",
+            "hash": "0xdcc5e02759360e3f23790aae80d8b9df82ead8b47674ac3a614a62ee4145a854",
+            "block": 11915908,
+            "gasUsed": 548503,
+            "timestamp": 1792012824,
+            "time": "2026-10-14T21:20:24Z"
+          },
+          {
+            "function": "settleRound(issue C) -> RoundSettled(1, No); Provisional",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0x3bE57E74f2E7c280073b6B16A1Db3F562758dB01",
+            "hash": "0x408c602be34785089373cc4b4d7e987ecdc4b5c4a740a381957de074b91ffa17",
+            "block": 11915909,
+            "gasUsed": 217434,
+            "timestamp": 1792012836,
+            "time": "2026-10-14T21:20:36Z"
+          }
+        ]
+      },
+      {
+        "run": "FinalizeR3",
+        "broadcast": "run-1792013605445.json",
+        "day": "2026-10-15 (UTC)",
+        "transactions": [
+          {
+            "function": "finalize(issue B) -> Finalized; Final x Decided(Yes)",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0x3bE57E74f2E7c280073b6B16A1Db3F562758dB01",
+            "hash": "0x819e6e7dd2be191647df9b732b7a129a5c955fcdb0670aaab55703475d1b3884",
+            "block": 11915970,
+            "gasUsed": 67952,
+            "timestamp": 1792013568,
+            "time": "2026-10-14T21:32:48Z",
+            "note": "appeal window closed at 1792012800 + 600 = 1792013400; finalAt = 1792013568"
+          },
+          {
+            "function": "adapter B.execute(issue B) -> acceptFulfillment(15, 1): Accepted, 0.001 ETH to the worker; Enacted(task-tender.acceptFulfillment); adapter Executed",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0x19B8E0290456fCd771169D6AEdc9e1D771Da426f",
+            "hash": "0x33d41b7e90f9cd4079b98ef35029bbfcdb35166b515006cf9bee1c2e567ff5bd",
+            "block": 11915971,
+            "gasUsed": 579905,
+            "timestamp": 1792013580,
+            "time": "2026-10-14T21:33:00Z"
+          },
+          {
+            "function": "finalize(issue C) -> Finalized; Final x Decided(No)",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0x3bE57E74f2E7c280073b6B16A1Db3F562758dB01",
+            "hash": "0x63506c79b0649849cd555a6e010c6328b77981e51beadeb5a06feeb25b9c5fb4",
+            "block": 11915972,
+            "gasUsed": 68026,
+            "timestamp": 1792013592,
+            "time": "2026-10-14T21:33:12Z",
+            "note": "appeal window closed at 1792012824 + 600 = 1792013424; finalAt = 1792013592"
+          },
+          {
+            "function": "adapter C.execute(issue C) -> rejectFulfillment(16, 1): FulfillmentRejected; Enacted(task-tender.rejectFulfillment); adapter Executed",
+            "from": "0x2cF07458835437ce44C06f92BbfD30CCd3794dCF",
+            "to": "0x0Ef78bddBcf96919B27df84c091a34DfDF4D820b",
+            "hash": "0x88f4ac64ddc581baa2150818475caf8f09af975f3fdf0276158fe00bf7d58022",
+            "block": 11915973,
+            "gasUsed": 436202,
+            "timestamp": 1792013604,
+            "time": "2026-10-14T21:33:24Z"
+          }
+        ]
+      }
+    ]
+  }
 }

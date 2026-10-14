@@ -185,3 +185,17 @@ REQUIRE_CLEARANCE), ALL(2, 3), BODY(1), BODY(2); maxTotalDuration 10800 s; descr
 Case A body (jurors 1-5, k 3, 3600 s, SIGNED_BALLOTS), ballots jurors 1-3 No; descriptor
 `deployments/case-c/policy-descriptor.json`; the submitted result deliberately answers a different
 question (`deployments/case-c/result.json`).
+
+### Record of the revision-3 run (2026-10-15)
+
+| Run | Blocks | Result |
+|---|---|---|
+| DeployCoreR3 | 11915739-11915749 | `ACDFPolicyRegistry` `0x7eAfCC452EC0A60a358a26B6e73f28413C4abeF0` (10,201 B), `ACDFRegistry` `0x3bE57E74f2E7c280073b6B16A1Db3F562758dB01`, policies B `0x310590ad...e26a` and C `0x969eac69...6a1c`, adapters `0x19B8E029...426f` (B) and `0x0Ef78bdd...820b` (C); dead tree refused locally; gas money to the worker and jurors 1, 2, 4, 5 |
+| MintTasksR3 | 11915785-11915788 | tasks #15/#16, 0.001 ETH each |
+| OpenCasesR3 | 11915898-11915909 | issues `0x8e06e840...7524` (B) / `0x79552e1d...d554` (C); B: screening cleared (2 signed No), 4 on-chain ballots, root Yes at 1792012800, settled 828 s before the veto window closed; C: 3 signed No, settled No |
+| FinalizeR3 | 11915970-11915973 | B: Final x Decided(Yes), finalAt 1792013568, `acceptFulfillment(15, 1)` paid; C: Final x Decided(No), finalAt 1792013592, `rejectFulfillment(16, 1)`, submission Rejected, slot released, escrow untouched |
+
+The deployed runtime of all four contracts matches a fresh build of the assets. An `eth_call` offering the
+dead tree to the new policy registry reverts with `ACDF: veto body votes`; the same call against the
+revision-2 registry returns a policy id. Every transaction and the decoded on-chain reads are under
+`revision3` in `deployments/sepolia-cases.json`.

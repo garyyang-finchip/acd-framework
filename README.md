@@ -2,7 +2,7 @@
 
 > Qualified participants form collective decisions with defined effect, within explicit authorization, under verifiable and composable rules.
 
-**Status:** **ERC-8436** is in ethereum/ERCs as a Draft — official page https://eips.ethereum.org/EIPS/eip-8436, merged on 2026-10-14 through pull request #2046 (https://github.com/ethereum/ERCs/pull/2046); discussion continues on Ethereum Magicians (https://ethereum-magicians.org/t/erc-8436-agent-collective-decision-framework/29850). This repository holds the design memo v0.2, the reference implementation v0.2 (Solidity, Foundry) with 135 passing tests and cross-language vectors, and the ERC source text (`ERCS/erc-acdf.md`, from which the ethereum/ERCs file is generated). Deployed on Sepolia: revision 2 (the code in this repository) with two live cases completed on 2026-10-09 — Case A (Final x Decided(Yes), paid through the real `acceptFulfillment`) and Case A2 (appealed under REQUIRE_FRESH_DECISION, Final x NoDecision, execution refused) — recorded in `deployments/sepolia-cases.json`; the v0.2 deployment of 2026-10-04 is archived.
+**Status:** **ERC-8436** is in ethereum/ERCs as a Draft — official page https://eips.ethereum.org/EIPS/eip-8436, merged on 2026-10-14 through pull request #2046 (https://github.com/ethereum/ERCs/pull/2046); discussion continues on Ethereum Magicians (https://ethereum-magicians.org/t/erc-8436-agent-collective-decision-framework/29850). This repository holds the design memo v0.2, the reference implementation v0.2 (Solidity, Foundry) with 135 passing tests and cross-language vectors, and the ERC source text (`ERCS/erc-acdf.md`, from which the ethereum/ERCs file is generated). Deployed on Sepolia in three revisions against the live ERC-8414 TaskToken, four live cases in all — Case A (Final x Decided(Yes), paid through the real `acceptFulfillment`), Case A2 (appealed under REQUIRE_FRESH_DECISION, Final x NoDecision, execution refused), Case B (screening veto cleared explicitly, two chambers approve with on-chain ballots, paid) and Case C (three dissents, Final x Decided(No), `rejectFulfillment` releases the slot without payment) — recorded in `deployments/sepolia-cases.json`; the v0.2 deployment of 2026-10-04 is archived.
 
 ## What it is
 
@@ -30,7 +30,7 @@ scripts/make-filing-package.py  builds and lints the ethereum/ERCs submission pa
 script/SepoliaCaseA.s.sol     Foundry scripts: Sepolia deployment (revision 2), Case A and Case A2 against the live ERC-8414 TaskToken
 script/SepoliaCaseBC.s.sol    Foundry scripts: revision 3 (body-role registries), Case B (composition, veto, on-chain ballots) and Case C (reject)
 docs/sepolia-runbook.md       how to run them; what each run proves
-deployments/                  sepolia.json / sepolia-r3.json (script state), sepolia-cases.json (evidence record), sepolia-first-attempt*.json, case-a/ .. case-c/ (hashed documents and policy descriptors), archive/ (v0.2 record)
+deployments/                  sepolia.json / sepolia-r3.json (script state), sepolia-cases.json (evidence record, both revisions), sepolia-first-attempt*.json, case-a/ .. case-c/ (hashed documents and policy descriptors), archive/ (v0.2 record)
 ```
 
 ## Build and test
@@ -46,23 +46,35 @@ npm install && node tools/vectors.js # optional: regenerate vectors
 
 ## Sepolia
 
-**Revision 2 deployment (2026-10-05 / 2026-10-09).** The scripts in `script/SepoliaCaseA.s.sol` (see `docs/sepolia-runbook.md`) deployed the current contracts and ran two live cases against the ERC-8414 reference TaskToken (`0xA62059A498E40C4Ae4aF926E2B00C1Ff122bDdb7`):
+**Revision 3 deployment (2026-10-15)** — registries with the body-role validation of Section 3, Case B and Case C. Scripts: `script/SepoliaCaseBC.s.sol`; state: `deployments/sepolia-r3.json`.
 
 | Contract | Address | Runtime |
 |---|---|---|
-| `ACDFPolicyRegistry` | `0x7e870B29C903e71517676d52FCCD20Ef96477A73` | 9,765 B |
+| `ACDFPolicyRegistry` | `0x7eAfCC452EC0A60a358a26B6e73f28413C4abeF0` | 10,201 B |
+| `ACDFRegistry` | `0x3bE57E74f2E7c280073b6B16A1Db3F562758dB01` | 24,212 B |
+| `ACDFTaskTenderAdapter` (policy B: VETO(screening) over ALL(technical, economic)) | `0x19B8E0290456fCd771169D6AEdc9e1D771Da426f` | 5,870 B |
+| `ACDFTaskTenderAdapter` (policy C: 3-of-5 signed ballots) | `0x0Ef78bddBcf96919B27df84c091a34DfDF4D820b` | 5,870 B |
+
+All four match the bytecode built from `assets/erc-acdf/contracts` outside their immutable slots. Policy ids `0x310590ad...e26a` (B) and `0x969eac69...6a1c` (C). The body-role rules are live: an `eth_call` offering Revinand's dead tree (the veto body also voting under the `VETO` it guards) to this registry reverts with `ACDF: veto body votes`, while the revision-2 registry would have accepted it.
+
+- **Case B** (task #15, issue `0x8e06e840...7524`): the screening body (jurors 4-5, 1-of-2, signed) blocks twice = explicit clearance; the technical chamber (jurors 1-2) and the economic chamber (jurors 4-5) approve with on-chain `castBallot`; `settleRound` -> Provisional(Yes) 828 s before the veto window closed; `finalize` -> Final x Decided(Yes); `execute` -> `acceptFulfillment(15, 1)` pays the worker 0.001 ETH.
+- **Case C** (task #16, issue `0x79552e1d...d554`): jurors 1-3 block with signed ballots -> Provisional(No) -> Final x Decided(No); `execute` -> `rejectFulfillment(16, 1)`: submission Rejected, `pendingOf` 0, the 0.001 ETH escrow stays with the task, nothing credited to the worker.
+
+**Revision 2 deployment (2026-10-05 / 2026-10-09)** — Case A and Case A2. Scripts: `script/SepoliaCaseA.s.sol`; state: `deployments/sepolia.json`.
+
+| Contract | Address | Runtime |
+|---|---|---|
+| `ACDFPolicyRegistry` (before the body-role rules) | `0x7e870B29C903e71517676d52FCCD20Ef96477A73` | 9,765 B |
 | `ACDFRegistry` | `0xbA03B451B421b5041d7bE7b5Fd7DbcF3B6Aa1354` | 24,212 B |
 | `ACDFTaskTenderAdapter` (policy A, PRESERVE_UNLESS_OVERTURNED) | `0x09c3550cCAfc2E73B1f0edA3ECA2f5247bB24Da7` | 5,870 B |
 | `ACDFTaskTenderAdapter` (policy A2, REQUIRE_FRESH_DECISION) | `0x078271c288141660753b1BfB67A3cfc2F06c8AC2` | 5,870 B |
 
-All four match the bytecode built from `assets/erc-acdf/contracts` outside their immutable slots. Policy ids `0xb231869b...0401` (A) and `0x3e431bbb...d063` (A2), family authority = deployer. The deployed `ACDFPolicyRegistry` predates the body-role validation added after the second Magicians review (a body as two `BODY` leaves, a voting veto body, an idle body — now rejected at registration); both registered policies have a single body and are unaffected. Revision 3 (`script/SepoliaCaseBC.s.sol`, record `deployments/sepolia-r3.json` once run) redeploys the registries with the validation and adds Case B (screening veto over two chambers that vote on chain, explicit clearance, `acceptFulfillment`) and Case C (3-of-5 rejects, `rejectFulfillment` releases the slot without payment).
+Policy ids `0xb231869b...0401` (A) and `0x3e431bbb...d063` (A2), family authority = deployer; both policies have a single body and are unaffected by the later validation rules.
 
 - **Case A** (task #13, issue `0xf2e88a4e...1dc8`): one dissent and three signed approvals, settle, appeal window passes, `finalize` -> Final x Decided(Yes), `adoptedFromEarlierRound = false`; `execute` -> `acceptFulfillment(13, 1)` pays the worker 0.001 ETH.
 - **Case A2** (task #14, issue `0x2ff1ec2f...4cdc`): three approvals, settle -> Provisional(Yes), `appeal` -> round 2, no ballots, round 2 settles NoDecision(QUORUM_NOT_MET) -> Final x NoDecision (`roundCount 2`, `sourceRound 2`); the round-1 Yes is vacated under REQUIRE_FRESH_DECISION, the adapter refuses `execute`, the submission stays Pending and the tender's own `claimUnjudged` governs.
 
-The full record — every transaction with block, timestamp and gas, the on-chain `getResult` values, the first attempt of 2026-10-05 (tasks #9/#10, closed late by `CloseFirstAttempt`: the kernel still accepted Case A because `acceptFulfillment` is bounded by `settleBy` only, and `claimUnjudged` paid Case A2), the superseded contracts and the Sepolia gas repricing — is `deployments/sepolia-cases.json`; `deployments/sepolia.json` is the script's state file.
-
-**v0.2 deployment (2026-10-04), archived.** The first deployment and Case A under the v0.2 interfaces (before round-bound ballots, consumer-committed obligations and policy-explicit appeal modes) are recorded in `deployments/archive/2026-10-04-v0.2/`: `ACDFPolicyRegistry` `0x8b454635ad6CBd7649418df73776ED9FbD39f668`, `ACDFRegistry` `0x9ef9b6c68b2de3aCdaB42fbeca326816D1316a69`, `ACDFTaskTenderAdapter` `0x76986Fd0Cc636Bf4C54A2F9145463F9893b9635F`, task #8, issue `0xa5898a1a...bc4df`, Final x Decided(Yes), reward paid through the real `acceptFulfillment`. Those contracts stay on chain as they were.
+The full record — every transaction with block, timestamp and gas, the on-chain `getResult` values, the first attempt of 2026-10-05 (tasks #9/#10, closed late by `CloseFirstAttempt`: the kernel still accepted Case A because `acceptFulfillment` is bounded by `settleBy` only, and `claimUnjudged` paid Case A2), the superseded contracts and the Sepolia gas repricing — is `deployments/sepolia-cases.json`. Not exercised on Sepolia, by construction of the ERC-8414 adapter (which files as CONSUMER_FILED): STANDING_ACCEPTANCE, POST_ACK and AUTHORIZED_SUBMITTER bodies; those are covered by the local suites.
 
 ## Filing
 
