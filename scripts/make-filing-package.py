@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build and lint the ethereum/ERCs submission package for the ACDF proposal.
 
-Source of truth: ERCS/erc-acdf.md (ERC-8436; the number was assigned on 2026-10-05) and
+Source of truth: ERCS/erc-acdf.md (ERC-8436, merged into ethereum/ERCs on 2026-10-14; https://eips.ethereum.org/EIPS/eip-8436) and
 assets/erc-acdf/{contracts,schemas,vectors}. The package mirrors the ERCs repository layout:
 
     <out>/ERCS/erc-<N>.md
